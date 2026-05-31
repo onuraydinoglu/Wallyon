@@ -1,10 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { colors } from "../constants/theme";
-
-const USER_NAME_STORAGE_KEY = "WALLYON_USER_NAME";
+import { getStoredUserName } from "../services/profileStorage";
 
 export default function IndexScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -13,7 +11,7 @@ export default function IndexScreen() {
   useEffect(() => {
     const checkUserName = async () => {
       try {
-        const name = await AsyncStorage.getItem(USER_NAME_STORAGE_KEY);
+        const name = await getStoredUserName();
         setStoredName(name);
       } catch (error) {
         console.log("User name could not be loaded:", error);
@@ -28,22 +26,13 @@ export default function IndexScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.purple} />
+        <ActivityIndicator size="large" color={colors.purpleLight} />
       </View>
     );
   }
 
   if (storedName) {
-    return (
-      <Redirect
-        href={{
-          pathname: "/tabs/home",
-          params: {
-            name: storedName,
-          },
-        }}
-      />
-    );
+    return <Redirect href="/tabs/home" />;
   }
 
   return <Redirect href="/onboarding" />;

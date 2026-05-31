@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -11,8 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import NameOnlyCard from "../../components/onboarding/NameOnlyCard";
 import { colors } from "../../constants/theme";
-
-const USER_NAME_STORAGE_KEY = "WALLYON_USER_NAME";
+import { saveStoredUserName } from "../../services/profileStorage";
 
 export default function OnboardingScreen() {
   const [name, setName] = useState("");
@@ -26,7 +24,7 @@ export default function OnboardingScreen() {
     }
 
     try {
-      await AsyncStorage.setItem(USER_NAME_STORAGE_KEY, trimmedName);
+      await saveStoredUserName(trimmedName);
 
       router.replace({
         pathname: "/tabs/home",

@@ -80,7 +80,7 @@ export default function AnalyticsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -112,6 +112,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 31,
+    paddingBottom: 20,
   },
 });

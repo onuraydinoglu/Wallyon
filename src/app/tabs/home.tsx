@@ -430,7 +430,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 31,
+    paddingBottom: 20,
   },
   summaryGrid: {
     marginTop: 18,

@@ -242,6 +242,8 @@ export default function ExpenseTransactionModal({
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.formContent}
               keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+              scrollEnabled={!isSelectOpen}
             >
               <Text style={styles.label}>Alan</Text>
 
@@ -285,6 +287,8 @@ export default function ExpenseTransactionModal({
                       style={styles.dropdownScroll}
                       nestedScrollEnabled
                       keyboardShouldPersistTaps="handled"
+                      showsVerticalScrollIndicator
+                      scrollEnabled={expenseFields.length > 3}
                     >
                       <TouchableOpacity
                         activeOpacity={0.85}
@@ -557,6 +561,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.65)",
     backgroundColor: colors.panel,
     overflow: "hidden",
+    maxHeight: 154,
   },
   dropdownScroll: {
     maxHeight: 154,

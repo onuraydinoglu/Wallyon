@@ -201,6 +201,24 @@ export default function HomeScreen() {
     });
   }, [transactions]);
 
+  const currentMonthIncome = useMemo(() => {
+    return currentMonthTransactions
+      .filter((item) => item.type === "income")
+      .reduce((total, item) => total + item.amount, 0);
+  }, [currentMonthTransactions]);
+
+  const currentMonthExpense = useMemo(() => {
+    return currentMonthTransactions
+      .filter((item) => item.type === "expense")
+      .reduce((total, item) => total + item.amount, 0);
+  }, [currentMonthTransactions]);
+
+  const currentMonthInvestment = useMemo(() => {
+    return currentMonthTransactions
+      .filter((item) => item.type === "investment")
+      .reduce((total, item) => total + item.amount, 0);
+  }, [currentMonthTransactions]);
+
   const handleSaveIncome = (transaction: Transaction) => {
     setTransactions((currentTransactions) => {
       const isEditing = currentTransactions.some(
@@ -370,7 +388,7 @@ export default function HomeScreen() {
         <View style={styles.summaryGrid}>
           <SummaryCard
             title="Toplam Gelir"
-            amount={totalIncome}
+            amount={currentMonthIncome}
             dotColor={colors.income}
             progressColor={colors.income}
             progressWidth="72%"
@@ -378,7 +396,7 @@ export default function HomeScreen() {
 
           <SummaryCard
             title="Toplam Gider"
-            amount={totalExpense}
+            amount={currentMonthExpense}
             dotColor={colors.expense}
             progressColor={colors.expense}
             progressWidth="55%"
@@ -386,7 +404,7 @@ export default function HomeScreen() {
 
           <SummaryCard
             title="Toplam Yatırım"
-            amount={totalInvestment}
+            amount={currentMonthInvestment}
             dotColor={colors.investment}
             progressColor={colors.investment}
             progressWidth="68%"
@@ -515,24 +533,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+
   contentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 110,
   },
+
   summaryGrid: {
     marginTop: 18,
     flexDirection: "row",
     gap: 10,
   },
+
   actionRow: {
     marginTop: 22,
     flexDirection: "row",
     justifyContent: "space-between",
   },
+
   transactionsCard: {
     marginTop: 24,
     borderRadius: 30,
@@ -541,17 +564,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.panelBorder,
   },
+
   sectionHeader: {
     marginBottom: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+
   sectionTitle: {
     color: colors.white,
     fontSize: 20,
     fontWeight: "900",
   },
+
   seeAllText: {
     color: colors.purpleLight,
     fontSize: 13,

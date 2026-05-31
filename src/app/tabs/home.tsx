@@ -110,6 +110,7 @@ export default function HomeScreen() {
     useState<Transaction[]>(initialTransactions);
 
   const [isStorageLoaded, setIsStorageLoaded] = useState(false);
+
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
@@ -374,6 +375,60 @@ export default function HomeScreen() {
     setEditingTransaction(null);
   };
 
+  const closeTransactionModalsForFields = () => {
+    setIsIncomeModalVisible(false);
+    setIsExpenseModalVisible(false);
+    setIsInvestmentModalVisible(false);
+  };
+
+  const openIncomeFieldsModal = () => {
+    closeTransactionModalsForFields();
+
+    setTimeout(() => {
+      setIsIncomeFieldsModalVisible(true);
+    }, 0);
+  };
+
+  const openExpenseFieldsModal = () => {
+    closeTransactionModalsForFields();
+
+    setTimeout(() => {
+      setIsExpenseFieldsModalVisible(true);
+    }, 0);
+  };
+
+  const openInvestmentFieldsModal = () => {
+    closeTransactionModalsForFields();
+
+    setTimeout(() => {
+      setIsInvestmentFieldsModalVisible(true);
+    }, 0);
+  };
+
+  const closeIncomeFieldsModal = () => {
+    setIsIncomeFieldsModalVisible(false);
+
+    setTimeout(() => {
+      setIsIncomeModalVisible(true);
+    }, 0);
+  };
+
+  const closeExpenseFieldsModal = () => {
+    setIsExpenseFieldsModalVisible(false);
+
+    setTimeout(() => {
+      setIsExpenseModalVisible(true);
+    }, 0);
+  };
+
+  const closeInvestmentFieldsModal = () => {
+    setIsInvestmentFieldsModalVisible(false);
+
+    setTimeout(() => {
+      setIsInvestmentModalVisible(true);
+    }, 0);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -475,14 +530,14 @@ export default function HomeScreen() {
           editingTransaction?.type === "income" ? editingTransaction : null
         }
         onClose={closeIncomeModal}
-        onOpenFieldsModal={() => setIsIncomeFieldsModalVisible(true)}
+        onOpenFieldsModal={openIncomeFieldsModal}
         onSave={handleSaveIncome}
       />
 
       <IncomeFieldsModal
         visible={isIncomeFieldsModalVisible}
         fields={incomeFields}
-        onClose={() => setIsIncomeFieldsModalVisible(false)}
+        onClose={closeIncomeFieldsModal}
         onAddField={handleAddIncomeField}
         onDeleteField={handleDeleteIncomeField}
       />
@@ -494,14 +549,14 @@ export default function HomeScreen() {
           editingTransaction?.type === "expense" ? editingTransaction : null
         }
         onClose={closeExpenseModal}
-        onOpenFieldsModal={() => setIsExpenseFieldsModalVisible(true)}
+        onOpenFieldsModal={openExpenseFieldsModal}
         onSave={handleSaveExpense}
       />
 
       <ExpenseFieldsModal
         visible={isExpenseFieldsModalVisible}
         fields={expenseFields}
-        onClose={() => setIsExpenseFieldsModalVisible(false)}
+        onClose={closeExpenseFieldsModal}
         onAddField={handleAddExpenseField}
         onDeleteField={handleDeleteExpenseField}
       />
@@ -513,14 +568,14 @@ export default function HomeScreen() {
           editingTransaction?.type === "investment" ? editingTransaction : null
         }
         onClose={closeInvestmentModal}
-        onOpenFieldsModal={() => setIsInvestmentFieldsModalVisible(true)}
+        onOpenFieldsModal={openInvestmentFieldsModal}
         onSave={handleSaveInvestment}
       />
 
       <InvestmentFieldsModal
         visible={isInvestmentFieldsModalVisible}
         fields={investmentFields}
-        onClose={() => setIsInvestmentFieldsModalVisible(false)}
+        onClose={closeInvestmentFieldsModal}
         onAddField={handleAddInvestmentField}
         onDeleteField={handleDeleteInvestmentField}
       />
@@ -533,29 +588,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-
   contentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 31,
   },
-
   summaryGrid: {
     marginTop: 18,
     flexDirection: "row",
     gap: 10,
   },
-
   actionRow: {
     marginTop: 22,
     flexDirection: "row",
     justifyContent: "space-between",
   },
-
   transactionsCard: {
     marginTop: 24,
     borderRadius: 30,
@@ -564,20 +614,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.panelBorder,
   },
-
   sectionHeader: {
     marginBottom: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-
   sectionTitle: {
     color: colors.white,
     fontSize: 20,
     fontWeight: "900",
   },
-
   seeAllText: {
     color: colors.purpleLight,
     fontSize: 13,

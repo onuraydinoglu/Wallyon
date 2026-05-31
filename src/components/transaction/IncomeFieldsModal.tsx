@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Alert, FlatList, Modal, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../constants/theme";
 import AppButton from "../ui/AppButton";
@@ -44,12 +36,15 @@ export default function IncomeFieldsModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable
-          style={styles.modalCard}
-          onPress={(event) => event.stopPropagation()}
-        >
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View style={styles.backdrop}>
+        <View style={styles.modalCard}>
           <Text style={styles.title}>Gelir Alanları</Text>
 
           <Text style={styles.description}>
@@ -63,56 +58,56 @@ export default function IncomeFieldsModal({
               value={fieldName}
               onChangeText={setFieldName}
               placeholder="Örn: Prim, Elektrik, Altın"
-              height={46}
               style={styles.input}
             />
 
             <AppButton
               title="Ekle"
               onPress={handleAdd}
-              variant="purple"
-              width={68}
-              height={46}
+              style={styles.addButton}
             />
           </View>
 
           <Text style={styles.sectionTitle}>Mevcut Alanlar</Text>
 
-          <ScrollView
-            style={styles.fieldsScroll}
-            contentContainerStyle={styles.fieldsWrapper}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-          >
-            {fields.map((field) => (
-              <View key={field} style={styles.fieldItem}>
-                <Text style={styles.fieldText}>{field}</Text>
+          <View style={styles.fieldsListBox}>
+            <FlatList
+              data={fields}
+              keyExtractor={(item, index) => `${item}-${index}`}
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator
+              bounces={false}
+              scrollEnabled={fields.length > 3}
+              contentContainerStyle={styles.fieldsListContent}
+              renderItem={({ item }) => (
+                <View style={styles.fieldItem}>
+                  <Text style={styles.fieldText}>{item}</Text>
 
-                <AppIconButton
-                  icon="trash-outline"
-                  onPress={() => onDeleteField(field)}
-                  size={38}
-                  iconSize={20}
-                  iconColor="#fda4af"
-                  backgroundColor="rgba(255, 92, 124, 0.18)"
-                  borderColor="rgba(255, 92, 124, 0.18)"
-                />
-              </View>
-            ))}
-          </ScrollView>
+                  <AppIconButton
+                    icon="trash-outline"
+                    onPress={() => onDeleteField(item)}
+                    size={38}
+                    iconSize={20}
+                    iconColor="#fda4af"
+                    backgroundColor="rgba(255, 92, 124, 0.18)"
+                    borderColor="rgba(255, 92, 124, 0.18)"
+                  />
+                </View>
+              )}
+            />
+          </View>
 
           <View style={styles.footer}>
             <AppButton
               title="Kapat"
               onPress={onClose}
               variant="secondary"
-              width={84}
-              height={42}
+              style={styles.closeButton}
             />
           </View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -161,6 +156,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
   },
+  addButton: {
+    width: 88,
+  },
   sectionTitle: {
     marginTop: 20,
     marginBottom: 10,
@@ -168,10 +166,10 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "900",
   },
-  fieldsScroll: {
-    maxHeight: 162,
+  fieldsListBox: {
+    height: 162,
   },
-  fieldsWrapper: {
+  fieldsListContent: {
     gap: 8,
     paddingBottom: 4,
   },
@@ -199,5 +197,8 @@ const styles = StyleSheet.create({
     borderTopColor: "rgba(148, 163, 184, 0.08)",
     flexDirection: "row",
     justifyContent: "flex-end",
+  },
+  closeButton: {
+    width: 96,
   },
 });

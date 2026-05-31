@@ -7,4 +7,5 @@ export type Transaction = {
   amount: number;
   type: TransactionType;
   date: string;
+  note?: string;
 };

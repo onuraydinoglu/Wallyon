@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -13,11 +14,25 @@ import BalanceCard from "../../components/home/BalanceCard";
 import HomeHeader from "../../components/home/HomeHeader";
 import SummaryCard from "../../components/home/SummaryCard";
 import TransactionItem from "../../components/home/TransactionItem";
+import IncomeFieldsModal from "../../components/transaction/IncomeFieldsModal";
+import IncomeTransactionModal from "../../components/transaction/IncomeTransactionModal";
 import { colors } from "../../constants/theme";
-import { transactions } from "../../data/transactions";
+import { defaultIncomeFields } from "../../data/incomeFields";
+import { transactions as initialTransactions } from "../../data/transactions";
+import { Transaction } from "../../types/transaction";
 
 export default function HomeScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
+
+  const [transactions, setTransactions] =
+    useState<Transaction[]>(initialTransactions);
+
+  const [incomeFields, setIncomeFields] =
+    useState<string[]>(defaultIncomeFields);
+
+  const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
+  const [isIncomeFieldsModalVisible, setIsIncomeFieldsModalVisible] =
+    useState(false);
 
   const totalIncome = transactions
     .filter((item) => item.type === "income")
@@ -32,6 +47,33 @@ export default function HomeScreen() {
     .reduce((total, item) => total + item.amount, 0);
 
   const remainingBalance = totalIncome - totalExpense - totalInvestment;
+
+  const handleSaveIncome = (transaction: Transaction) => {
+    setTransactions((currentTransactions) => [
+      transaction,
+      ...currentTransactions,
+    ]);
+  };
+
+  const handleAddIncomeField = (fieldName: string) => {
+    setIncomeFields((currentFields) => {
+      const isAlreadyExists = currentFields.some(
+        (field) => field.toLowerCase() === fieldName.toLowerCase(),
+      );
+
+      if (isAlreadyExists) {
+        return currentFields;
+      }
+
+      return [...currentFields, fieldName];
+    });
+  };
+
+  const handleDeleteIncomeField = (fieldName: string) => {
+    setIncomeFields((currentFields) =>
+      currentFields.filter((field) => field !== fieldName),
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -77,6 +119,7 @@ export default function HomeScreen() {
             color={colors.income}
             iconBackgroundColor={colors.incomeSoft}
             borderColor={colors.incomeBorder}
+            onPress={() => setIsIncomeModalVisible(true)}
           />
 
           <ActionButton
@@ -118,6 +161,22 @@ export default function HomeScreen() {
           ))}
         </View>
       </ScrollView>
+
+      <IncomeTransactionModal
+        visible={isIncomeModalVisible}
+        incomeFields={incomeFields}
+        onClose={() => setIsIncomeModalVisible(false)}
+        onOpenFieldsModal={() => setIsIncomeFieldsModalVisible(true)}
+        onSave={handleSaveIncome}
+      />
+
+      <IncomeFieldsModal
+        visible={isIncomeFieldsModalVisible}
+        fields={incomeFields}
+        onClose={() => setIsIncomeFieldsModalVisible(false)}
+        onAddField={handleAddIncomeField}
+        onDeleteField={handleDeleteIncomeField}
+      />
     </SafeAreaView>
   );
 }

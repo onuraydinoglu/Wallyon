@@ -1,66 +1,172 @@
 import { useLocalSearchParams } from "expo-router";
-import { Text, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import ActionButton from "../../components/home/ActionButton";
+import BalanceCard from "../../components/home/BalanceCard";
+import HomeHeader from "../../components/home/HomeHeader";
+import SummaryCard from "../../components/home/SummaryCard";
+import TransactionItem from "../../components/home/TransactionItem";
+import { colors } from "../../constants/theme";
+import { transactions } from "../../data/transactions";
 
 export default function HomeScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
 
+  const totalIncome = transactions
+    .filter((item) => item.type === "income")
+    .reduce((total, item) => total + item.amount, 0);
+
+  const totalExpense = transactions
+    .filter((item) => item.type === "expense")
+    .reduce((total, item) => total + item.amount, 0);
+
+  const totalInvestment = transactions
+    .filter((item) => item.type === "investment")
+    .reduce((total, item) => total + item.amount, 0);
+
+  const remainingBalance = totalIncome - totalExpense - totalInvestment;
+
   return (
-    <View className="flex-1 bg-[#061426] px-6 pt-16">
-      <Text className="text-lg text-white">Hello,</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <HomeHeader name={name} />
 
-      <Text className="mb-8 text-3xl font-bold text-white">
-        Welcome Back{name ? `, ${name}` : ""}!
-      </Text>
+        <BalanceCard remainingBalance={remainingBalance} />
 
-      <View className="rounded-3xl bg-red-500 p-6">
-        <Text className="mb-4 text-base text-white/80">Total Balance</Text>
+        <View style={styles.summaryGrid}>
+          <SummaryCard
+            title="Toplam Gelir"
+            amount={totalIncome}
+            dotColor={colors.income}
+            progressColor={colors.income}
+            progressWidth="72%"
+          />
 
-        <Text className="text-4xl font-bold text-white">$ 24,560.00</Text>
+          <SummaryCard
+            title="Toplam Gider"
+            amount={totalExpense}
+            dotColor={colors.expense}
+            progressColor={colors.expense}
+            progressWidth="55%"
+          />
 
-        <Text className="mt-8 text-base text-white/80">
-          **** **** **** 4568
-        </Text>
-      </View>
-
-      <View className="mt-6 flex-row justify-between">
-        <View className="h-24 w-[22%] items-center justify-center rounded-2xl bg-white">
-          <Text className="font-semibold text-slate-900">Send</Text>
+          <SummaryCard
+            title="Toplam Yatırım"
+            amount={totalInvestment}
+            dotColor={colors.investment}
+            progressColor={colors.investment}
+            progressWidth="68%"
+          />
         </View>
 
-        <View className="h-24 w-[22%] items-center justify-center rounded-2xl bg-white">
-          <Text className="font-semibold text-slate-900">Receive</Text>
+        <View style={styles.actionRow}>
+          <ActionButton
+            title="Gelir"
+            icon="trending-up"
+            color={colors.income}
+            iconBackgroundColor={colors.incomeSoft}
+            borderColor={colors.incomeBorder}
+          />
+
+          <ActionButton
+            title="Gider"
+            icon="trending-down"
+            color={colors.expense}
+            iconBackgroundColor={colors.expenseSoft}
+            borderColor={colors.expenseBorder}
+          />
+
+          <ActionButton
+            title="Yatırım"
+            icon="business"
+            color={colors.investment}
+            iconBackgroundColor={colors.investmentSoft}
+            borderColor={colors.investmentBorder}
+          />
+
+          <ActionButton
+            title="Daha Fazla"
+            icon="ellipsis-horizontal"
+            color={colors.purpleLight}
+            iconBackgroundColor={colors.purpleSoft}
+            borderColor={colors.panelBorder}
+          />
         </View>
 
-        <View className="h-24 w-[22%] items-center justify-center rounded-2xl bg-white">
-          <Text className="font-semibold text-slate-900">Top Up</Text>
+        <View style={styles.transactionsCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Son İşlemler</Text>
+
+            <TouchableOpacity activeOpacity={0.8}>
+              <Text style={styles.seeAllText}>Tümünü Gör</Text>
+            </TouchableOpacity>
+          </View>
+
+          {transactions.map((item) => (
+            <TransactionItem key={item.id} transaction={item} />
+          ))}
         </View>
-
-        <View className="h-24 w-[22%] items-center justify-center rounded-2xl bg-white">
-          <Text className="font-semibold text-slate-900">More</Text>
-        </View>
-      </View>
-
-      <View className="mt-6 rounded-3xl bg-white p-5">
-        <View className="mb-5 flex-row items-center justify-between">
-          <Text className="text-xl font-bold text-slate-900">
-            Recent Transactions
-          </Text>
-
-          <Text className="font-semibold text-red-500">See All</Text>
-        </View>
-
-        <Text className="mb-4 text-base font-semibold text-slate-900">
-          Dribbble -$250.00
-        </Text>
-
-        <Text className="mb-4 text-base font-semibold text-slate-900">
-          Figma -$160.00
-        </Text>
-
-        <Text className="text-base font-semibold text-slate-900">
-          Upwork +$850.00
-        </Text>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 110,
+  },
+  summaryGrid: {
+    marginTop: 18,
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionRow: {
+    marginTop: 22,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  transactionsCard: {
+    marginTop: 24,
+    borderRadius: 30,
+    backgroundColor: colors.panel,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+  },
+  sectionHeader: {
+    marginBottom: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    color: colors.white,
+    fontSize: 20,
+    fontWeight: "900",
+  },
+  seeAllText: {
+    color: colors.purpleLight,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+});

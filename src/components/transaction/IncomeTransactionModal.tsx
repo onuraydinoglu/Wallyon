@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -25,14 +25,38 @@ import AppInput from "../ui/AppInput";
 type IncomeTransactionModalProps = {
   visible: boolean;
   incomeFields: string[];
+  editTransaction?: Transaction | null;
   onClose: () => void;
   onOpenFieldsModal: () => void;
   onSave: (transaction: Transaction) => void;
 };
 
+const parseTransactionDate = (dateText: string) => {
+  const numericDateMatch = dateText.match(
+    /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/,
+  );
+
+  if (numericDateMatch) {
+    const day = Number(numericDateMatch[1]);
+    const month = Number(numericDateMatch[2]) - 1;
+    const year = Number(numericDateMatch[3]);
+
+    return new Date(year, month, day);
+  }
+
+  const parsedDate = new Date(dateText);
+
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return parsedDate;
+  }
+
+  return new Date();
+};
+
 export default function IncomeTransactionModal({
   visible,
   incomeFields,
+  editTransaction,
   onClose,
   onOpenFieldsModal,
   onSave,
@@ -54,6 +78,22 @@ export default function IncomeTransactionModal({
     setSelectedDate(new Date());
     setIsDatePickerVisible(false);
   };
+
+  useEffect(() => {
+    if (!visible) return;
+
+    if (editTransaction) {
+      setSelectedField(editTransaction.title);
+      setAmount(String(editTransaction.amount));
+      setNote(editTransaction.note || "");
+      setSelectedDate(parseTransactionDate(editTransaction.date));
+      setIsSelectOpen(false);
+      setIsDatePickerVisible(false);
+      return;
+    }
+
+    resetForm();
+  }, [visible, editTransaction]);
 
   const handleClose = () => {
     resetForm();
@@ -79,7 +119,7 @@ export default function IncomeTransactionModal({
     }
 
     onSave({
-      id: Date.now(),
+      id: editTransaction?.id ?? Date.now(),
       title: selectedField,
       category: "Gelir",
       amount: parsedAmount,
@@ -104,8 +144,9 @@ export default function IncomeTransactionModal({
             onPress={(event) => event.stopPropagation()}
           >
             <View style={styles.header}>
-              <Text style={styles.title}>Gelir Ekle</Text>
-
+              <Text style={styles.title}>
+                {editTransaction ? "Gelir Güncelle" : "Gelir Ekle"}
+              </Text>
               <Text style={styles.description}>
                 İşlem detaylarını doldur ve kaydet.
               </Text>
@@ -115,8 +156,8 @@ export default function IncomeTransactionModal({
 
             <ScrollView
               showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
               contentContainerStyle={styles.formContent}
+              keyboardShouldPersistTaps="handled"
             >
               <Text style={styles.label}>Alan</Text>
 
@@ -141,19 +182,16 @@ export default function IncomeTransactionModal({
 
                     <Ionicons
                       name={isSelectOpen ? "chevron-up" : "chevron-down"}
-                      size={19}
-                      color={colors.muted}
+                      size={18}
+                      color={colors.white}
                     />
                   </TouchableOpacity>
 
                   <AppIconButton
                     icon="add"
                     onPress={handleOpenFieldsModal}
-                    size={48}
-                    iconSize={27}
-                    iconColor="#ddd6fe"
-                    backgroundColor={colors.purpleSoft}
-                    borderColor={colors.purpleBorder}
+                    size={46}
+                    iconSize={22}
                   />
                 </View>
 
@@ -161,46 +199,40 @@ export default function IncomeTransactionModal({
                   <View style={styles.dropdown}>
                     <ScrollView
                       style={styles.dropdownScroll}
-                      showsVerticalScrollIndicator={false}
                       nestedScrollEnabled
                       keyboardShouldPersistTaps="handled"
                     >
                       <TouchableOpacity
-                        activeOpacity={0.8}
+                        activeOpacity={0.85}
                         style={styles.dropdownItem}
                         onPress={() => {
                           setSelectedField("");
                           setIsSelectOpen(false);
                         }}
                       >
-                        <Ionicons
-                          name="checkmark"
-                          size={19}
-                          color={colors.white}
-                        />
-
+                        <View style={styles.dropdownIconPlaceholder} />
                         <Text style={styles.dropdownText}>Seçiniz</Text>
                       </TouchableOpacity>
 
                       {incomeFields.map((field) => (
                         <TouchableOpacity
                           key={field}
-                          activeOpacity={0.8}
+                          activeOpacity={0.85}
                           style={styles.dropdownItem}
                           onPress={() => {
                             setSelectedField(field);
                             setIsSelectOpen(false);
                           }}
                         >
-                          <View style={styles.dropdownIconPlaceholder}>
-                            {selectedField === field ? (
-                              <Ionicons
-                                name="checkmark"
-                                size={19}
-                                color={colors.income}
-                              />
-                            ) : null}
-                          </View>
+                          {selectedField === field ? (
+                            <Ionicons
+                              name="checkmark"
+                              size={18}
+                              color={colors.income}
+                            />
+                          ) : (
+                            <View style={styles.dropdownIconPlaceholder} />
+                          )}
 
                           <Text style={styles.dropdownText}>{field}</Text>
                         </TouchableOpacity>
@@ -213,20 +245,17 @@ export default function IncomeTransactionModal({
               <View style={styles.twoColumnRow}>
                 <View style={styles.column}>
                   <Text style={styles.label}>Tutar</Text>
-
                   <AppInput
                     value={amount}
                     onChangeText={setAmount}
-                    placeholder="0.00"
-                    keyboardType="decimal-pad"
-                    height={46}
+                    keyboardType="numeric"
+                    placeholder="0"
                     style={styles.input}
                   />
                 </View>
 
                 <View style={styles.column}>
                   <Text style={styles.label}>Tarih</Text>
-
                   <AppDateField
                     value={selectedDateText}
                     onPress={() => setIsDatePickerVisible(true)}
@@ -235,13 +264,13 @@ export default function IncomeTransactionModal({
               </View>
 
               <Text style={styles.label}>Not</Text>
-
               <AppInput
                 value={note}
                 onChangeText={setNote}
-                placeholder="İşlemle ilgili not..."
-                height={90}
+                placeholder="Not gir"
                 multilineInput
+                height={84}
+                textAlignVertical="top"
                 style={styles.noteInput}
               />
             </ScrollView>
@@ -249,30 +278,27 @@ export default function IncomeTransactionModal({
             <View style={styles.footer}>
               <AppButton
                 title="Vazgeç"
-                onPress={handleClose}
                 variant="secondary"
-                width={84}
-                height={42}
+                width={92}
+                onPress={handleClose}
               />
 
               <AppButton
-                title="Kaydet"
+                title={editTransaction ? "Güncelle" : "Kaydet"}
+                width={92}
                 onPress={handleSave}
-                variant="primary"
-                width={100}
-                height={42}
               />
             </View>
-
-            <AppDatePickerModal
-              visible={isDatePickerVisible}
-              value={selectedDate}
-              onClose={() => setIsDatePickerVisible(false)}
-              onConfirm={setSelectedDate}
-            />
           </Pressable>
         </KeyboardAvoidingView>
       </Pressable>
+
+      <AppDatePickerModal
+        visible={isDatePickerVisible}
+        value={selectedDate}
+        onClose={() => setIsDatePickerVisible(false)}
+        onConfirm={setSelectedDate}
+      />
     </Modal>
   );
 }

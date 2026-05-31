@@ -30,13 +30,6 @@ import { defaultInvestmentFields } from "../../data/investmentFields";
 import { transactions as initialTransactions } from "../../data/transactions";
 import { Transaction } from "../../types/transaction";
 
-type MonthlyIncomeSummary = {
-  monthKey: string;
-  monthLabel: string;
-  totalIncome: number;
-  transactionCount: number;
-};
-
 const TRANSACTIONS_STORAGE_KEY = "WALLYON_TRANSACTIONS";
 
 const turkishMonths: Record<string, string> = {
@@ -58,21 +51,6 @@ const turkishMonths: Record<string, string> = {
   kasim: "11",
   aralık: "12",
   aralik: "12",
-};
-
-const monthLabels: Record<string, string> = {
-  "01": "Ocak",
-  "02": "Şubat",
-  "03": "Mart",
-  "04": "Nisan",
-  "05": "Mayıs",
-  "06": "Haziran",
-  "07": "Temmuz",
-  "08": "Ağustos",
-  "09": "Eylül",
-  "10": "Ekim",
-  "11": "Kasım",
-  "12": "Aralık",
 };
 
 const normalizeText = (value: string) => {
@@ -125,13 +103,6 @@ const getCurrentMonthKey = () => {
   return `${year}-${month}`;
 };
 
-const getMonthLabel = (monthKey: string) => {
-  const [year, month] = monthKey.split("-");
-  const monthLabel = monthLabels[month] || "Bilinmeyen Ay";
-
-  return `${monthLabel} ${year}`;
-};
-
 export default function HomeScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
 
@@ -139,6 +110,8 @@ export default function HomeScreen() {
     useState<Transaction[]>(initialTransactions);
 
   const [isStorageLoaded, setIsStorageLoaded] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
 
   const [incomeFields, setIncomeFields] =
     useState<string[]>(defaultIncomeFields);
@@ -228,55 +201,84 @@ export default function HomeScreen() {
     });
   }, [transactions]);
 
-  const monthlyIncomeData = useMemo<MonthlyIncomeSummary[]>(() => {
-    const groupedIncome = transactions
-      .filter((item) => item.type === "income")
-      .reduce<Record<string, MonthlyIncomeSummary>>((acc, item) => {
-        const monthKey = getTransactionMonthKey(item.date);
-
-        if (!monthKey) {
-          return acc;
-        }
-
-        if (!acc[monthKey]) {
-          acc[monthKey] = {
-            monthKey,
-            monthLabel: getMonthLabel(monthKey),
-            totalIncome: 0,
-            transactionCount: 0,
-          };
-        }
-
-        acc[monthKey].totalIncome += item.amount;
-        acc[monthKey].transactionCount += 1;
-
-        return acc;
-      }, {});
-
-    return Object.values(groupedIncome).sort((a, b) =>
-      b.monthKey.localeCompare(a.monthKey),
-    );
-  }, [transactions]);
-
   const handleSaveIncome = (transaction: Transaction) => {
-    setTransactions((currentTransactions) => [
-      transaction,
-      ...currentTransactions,
-    ]);
+    setTransactions((currentTransactions) => {
+      const isEditing = currentTransactions.some(
+        (item) => item.id === transaction.id,
+      );
+
+      if (isEditing) {
+        return currentTransactions.map((item) =>
+          item.id === transaction.id ? transaction : item,
+        );
+      }
+
+      return [transaction, ...currentTransactions];
+    });
+
+    setEditingTransaction(null);
   };
 
   const handleSaveExpense = (newTransactions: Transaction[]) => {
-    setTransactions((currentTransactions) => [
-      ...newTransactions,
-      ...currentTransactions,
-    ]);
+    setTransactions((currentTransactions) => {
+      const editingTransactionItem = newTransactions.find((newTransaction) =>
+        currentTransactions.some(
+          (currentTransaction) => currentTransaction.id === newTransaction.id,
+        ),
+      );
+
+      if (editingTransactionItem) {
+        return currentTransactions.map((item) =>
+          item.id === editingTransactionItem.id ? editingTransactionItem : item,
+        );
+      }
+
+      return [...newTransactions, ...currentTransactions];
+    });
+
+    setEditingTransaction(null);
   };
 
   const handleSaveInvestment = (transaction: Transaction) => {
-    setTransactions((currentTransactions) => [
-      transaction,
-      ...currentTransactions,
-    ]);
+    setTransactions((currentTransactions) => {
+      const isEditing = currentTransactions.some(
+        (item) => item.id === transaction.id,
+      );
+
+      if (isEditing) {
+        return currentTransactions.map((item) =>
+          item.id === transaction.id ? transaction : item,
+        );
+      }
+
+      return [transaction, ...currentTransactions];
+    });
+
+    setEditingTransaction(null);
+  };
+
+  const handleDeleteTransaction = (transactionId: number) => {
+    setTransactions((currentTransactions) =>
+      currentTransactions.filter(
+        (transaction) => transaction.id !== transactionId,
+      ),
+    );
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+
+    if (transaction.type === "income") {
+      setIsIncomeModalVisible(true);
+      return;
+    }
+
+    if (transaction.type === "expense") {
+      setIsExpenseModalVisible(true);
+      return;
+    }
+
+    setIsInvestmentModalVisible(true);
   };
 
   const handleAddIncomeField = (fieldName: string) => {
@@ -339,16 +341,19 @@ export default function HomeScreen() {
     );
   };
 
-  const handleDeleteTransaction = (transactionId: number) => {
-    setTransactions((currentTransactions) =>
-      currentTransactions.filter(
-        (transaction) => transaction.id !== transactionId,
-      ),
-    );
+  const closeIncomeModal = () => {
+    setIsIncomeModalVisible(false);
+    setEditingTransaction(null);
   };
 
-  const handleEditTransaction = (transaction: Transaction) => {
-    console.log("Düzenlenecek işlem:", transaction);
+  const closeExpenseModal = () => {
+    setIsExpenseModalVisible(false);
+    setEditingTransaction(null);
+  };
+
+  const closeInvestmentModal = () => {
+    setIsInvestmentModalVisible(false);
+    setEditingTransaction(null);
   };
 
   return (
@@ -448,7 +453,10 @@ export default function HomeScreen() {
       <IncomeTransactionModal
         visible={isIncomeModalVisible}
         incomeFields={incomeFields}
-        onClose={() => setIsIncomeModalVisible(false)}
+        editTransaction={
+          editingTransaction?.type === "income" ? editingTransaction : null
+        }
+        onClose={closeIncomeModal}
         onOpenFieldsModal={() => setIsIncomeFieldsModalVisible(true)}
         onSave={handleSaveIncome}
       />
@@ -464,7 +472,10 @@ export default function HomeScreen() {
       <ExpenseTransactionModal
         visible={isExpenseModalVisible}
         expenseFields={expenseFields}
-        onClose={() => setIsExpenseModalVisible(false)}
+        editTransaction={
+          editingTransaction?.type === "expense" ? editingTransaction : null
+        }
+        onClose={closeExpenseModal}
         onOpenFieldsModal={() => setIsExpenseFieldsModalVisible(true)}
         onSave={handleSaveExpense}
       />
@@ -480,7 +491,10 @@ export default function HomeScreen() {
       <InvestmentTransactionModal
         visible={isInvestmentModalVisible}
         investmentFields={investmentFields}
-        onClose={() => setIsInvestmentModalVisible(false)}
+        editTransaction={
+          editingTransaction?.type === "investment" ? editingTransaction : null
+        }
+        onClose={closeInvestmentModal}
         onOpenFieldsModal={() => setIsInvestmentFieldsModalVisible(true)}
         onSave={handleSaveInvestment}
       />
@@ -542,29 +556,5 @@ const styles = StyleSheet.create({
     color: colors.purpleLight,
     fontSize: 13,
     fontWeight: "800",
-  },
-  monthlyIncomeRow: {
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.1)",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  monthlyIncomeMonth: {
-    color: colors.white,
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  monthlyIncomeCount: {
-    marginTop: 4,
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  monthlyIncomeAmount: {
-    color: colors.income,
-    fontSize: 15,
-    fontWeight: "900",
   },
 });

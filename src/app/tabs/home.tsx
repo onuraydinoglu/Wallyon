@@ -1,5 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -29,11 +30,115 @@ import { defaultInvestmentFields } from "../../data/investmentFields";
 import { transactions as initialTransactions } from "../../data/transactions";
 import { Transaction } from "../../types/transaction";
 
+type MonthlyIncomeSummary = {
+  monthKey: string;
+  monthLabel: string;
+  totalIncome: number;
+  transactionCount: number;
+};
+
+const TRANSACTIONS_STORAGE_KEY = "WALLYON_TRANSACTIONS";
+
+const turkishMonths: Record<string, string> = {
+  ocak: "01",
+  şubat: "02",
+  subat: "02",
+  mart: "03",
+  nisan: "04",
+  mayıs: "05",
+  mayis: "05",
+  haziran: "06",
+  temmuz: "07",
+  ağustos: "08",
+  agustos: "08",
+  eylül: "09",
+  eylul: "09",
+  ekim: "10",
+  kasım: "11",
+  kasim: "11",
+  aralık: "12",
+  aralik: "12",
+};
+
+const monthLabels: Record<string, string> = {
+  "01": "Ocak",
+  "02": "Şubat",
+  "03": "Mart",
+  "04": "Nisan",
+  "05": "Mayıs",
+  "06": "Haziran",
+  "07": "Temmuz",
+  "08": "Ağustos",
+  "09": "Eylül",
+  "10": "Ekim",
+  "11": "Kasım",
+  "12": "Aralık",
+};
+
+const normalizeText = (value: string) => {
+  return value.trim().toLocaleLowerCase("tr-TR").replace(",", "");
+};
+
+const getTransactionMonthKey = (dateText: string) => {
+  if (!dateText) return "";
+
+  const numericDateMatch = dateText.match(
+    /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/,
+  );
+
+  if (numericDateMatch) {
+    const month = numericDateMatch[2].padStart(2, "0");
+    const year = numericDateMatch[3];
+
+    return `${year}-${month}`;
+  }
+
+  const parsedDate = new Date(dateText);
+
+  if (!Number.isNaN(parsedDate.getTime())) {
+    const year = parsedDate.getFullYear();
+    const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+
+    return `${year}-${month}`;
+  }
+
+  const parts = dateText.split(" ").filter(Boolean);
+
+  if (parts.length >= 3) {
+    const monthText = normalizeText(parts[1]);
+    const month = turkishMonths[monthText];
+    const year = parts[2];
+
+    if (!month || !year) return "";
+
+    return `${year}-${month}`;
+  }
+
+  return "";
+};
+
+const getCurrentMonthKey = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+};
+
+const getMonthLabel = (monthKey: string) => {
+  const [year, month] = monthKey.split("-");
+  const monthLabel = monthLabels[month] || "Bilinmeyen Ay";
+
+  return `${monthLabel} ${year}`;
+};
+
 export default function HomeScreen() {
   const { name } = useLocalSearchParams<{ name?: string }>();
 
   const [transactions, setTransactions] =
     useState<Transaction[]>(initialTransactions);
+
+  const [isStorageLoaded, setIsStorageLoaded] = useState(false);
 
   const [incomeFields, setIncomeFields] =
     useState<string[]>(defaultIncomeFields);
@@ -58,6 +163,49 @@ export default function HomeScreen() {
   const [isInvestmentFieldsModalVisible, setIsInvestmentFieldsModalVisible] =
     useState(false);
 
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        const storedTransactions = await AsyncStorage.getItem(
+          TRANSACTIONS_STORAGE_KEY,
+        );
+
+        if (storedTransactions) {
+          const parsedTransactions = JSON.parse(
+            storedTransactions,
+          ) as Transaction[];
+
+          if (Array.isArray(parsedTransactions)) {
+            setTransactions(parsedTransactions);
+          }
+        }
+      } catch (error) {
+        console.log("Transactions could not be loaded:", error);
+      } finally {
+        setIsStorageLoaded(true);
+      }
+    };
+
+    loadTransactions();
+  }, []);
+
+  useEffect(() => {
+    if (!isStorageLoaded) return;
+
+    const saveTransactions = async () => {
+      try {
+        await AsyncStorage.setItem(
+          TRANSACTIONS_STORAGE_KEY,
+          JSON.stringify(transactions),
+        );
+      } catch (error) {
+        console.log("Transactions could not be saved:", error);
+      }
+    };
+
+    saveTransactions();
+  }, [transactions, isStorageLoaded]);
+
   const totalIncome = transactions
     .filter((item) => item.type === "income")
     .reduce((total, item) => total + item.amount, 0);
@@ -71,6 +219,44 @@ export default function HomeScreen() {
     .reduce((total, item) => total + item.amount, 0);
 
   const remainingBalance = totalIncome - totalExpense - totalInvestment;
+
+  const currentMonthTransactions = useMemo(() => {
+    const currentMonthKey = getCurrentMonthKey();
+
+    return transactions.filter((item) => {
+      return getTransactionMonthKey(item.date) === currentMonthKey;
+    });
+  }, [transactions]);
+
+  const monthlyIncomeData = useMemo<MonthlyIncomeSummary[]>(() => {
+    const groupedIncome = transactions
+      .filter((item) => item.type === "income")
+      .reduce<Record<string, MonthlyIncomeSummary>>((acc, item) => {
+        const monthKey = getTransactionMonthKey(item.date);
+
+        if (!monthKey) {
+          return acc;
+        }
+
+        if (!acc[monthKey]) {
+          acc[monthKey] = {
+            monthKey,
+            monthLabel: getMonthLabel(monthKey),
+            totalIncome: 0,
+            transactionCount: 0,
+          };
+        }
+
+        acc[monthKey].totalIncome += item.amount;
+        acc[monthKey].transactionCount += 1;
+
+        return acc;
+      }, {});
+
+    return Object.values(groupedIncome).sort((a, b) =>
+      b.monthKey.localeCompare(a.monthKey),
+    );
+  }, [transactions]);
 
   const handleSaveIncome = (transaction: Transaction) => {
     setTransactions((currentTransactions) => [
@@ -236,7 +422,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {transactions.map((item) => (
+          {currentMonthTransactions.map((item) => (
             <TransactionItem key={item.id} transaction={item} />
           ))}
         </View>
@@ -339,5 +525,29 @@ const styles = StyleSheet.create({
     color: colors.purpleLight,
     fontSize: 13,
     fontWeight: "800",
+  },
+  monthlyIncomeRow: {
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(148, 163, 184, 0.1)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  monthlyIncomeMonth: {
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  monthlyIncomeCount: {
+    marginTop: 4,
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  monthlyIncomeAmount: {
+    color: colors.income,
+    fontSize: 15,
+    fontWeight: "900",
   },
 });

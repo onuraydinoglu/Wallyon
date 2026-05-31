@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -8,14 +9,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import NameOnlyCard from "../../components/onboarding/NameOnlyCard";
 import { colors } from "../../constants/theme";
+
+const USER_NAME_STORAGE_KEY = "WALLYON_USER_NAME";
 
 export default function OnboardingScreen() {
   const [name, setName] = useState("");
 
-  const handleStart = () => {
+  const handleStart = async () => {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -23,12 +25,19 @@ export default function OnboardingScreen() {
       return;
     }
 
-    router.replace({
-      pathname: "/tabs/home",
-      params: {
-        name: trimmedName,
-      },
-    });
+    try {
+      await AsyncStorage.setItem(USER_NAME_STORAGE_KEY, trimmedName);
+
+      router.replace({
+        pathname: "/tabs/home",
+        params: {
+          name: trimmedName,
+        },
+      });
+    } catch (error) {
+      console.log("User name could not be saved:", error);
+      Alert.alert("Hata", "İsim kaydedilirken bir sorun oluştu.");
+    }
   };
 
   return (

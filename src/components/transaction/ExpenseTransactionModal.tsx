@@ -1,58 +1,70 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { colors } from "../../constants/theme";
 import { Transaction } from "../../types/transaction";
-import { formatDateTR } from "../../utils/dateUtils";
+import { addMonthsToDate, formatDateTR } from "../../utils/dateUtils";
 import AppButton from "../ui/AppButton";
 import AppDateField from "../ui/AppDateField";
 import AppDatePickerModal from "../ui/AppDatePickerModal";
 import AppIconButton from "../ui/AppIconButton";
 import AppInput from "../ui/AppInput";
 
-type IncomeTransactionModalProps = {
+type ExpenseTransactionModalProps = {
   visible: boolean;
-  incomeFields: string[];
+  expenseFields: string[];
   onClose: () => void;
   onOpenFieldsModal: () => void;
-  onSave: (transaction: Transaction) => void;
+  onSave: (transactions: Transaction[]) => void;
 };
 
-export default function IncomeTransactionModal({
+export default function ExpenseTransactionModal({
   visible,
-  incomeFields,
+  expenseFields,
   onClose,
   onOpenFieldsModal,
   onSave,
-}: IncomeTransactionModalProps) {
+}: ExpenseTransactionModalProps) {
   const [selectedField, setSelectedField] = useState("");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [installmentCount, setInstallmentCount] = useState("1");
+
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [firstInstallmentDate, setFirstInstallmentDate] = useState(new Date());
+
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+  const [isInstallmentDatePickerVisible, setIsInstallmentDatePickerVisible] =
+    useState(false);
 
   const selectedDateText = formatDateTR(selectedDate);
+  const firstInstallmentDateText = formatDateTR(firstInstallmentDate);
 
   const resetForm = () => {
     setSelectedField("");
     setIsSelectOpen(false);
     setAmount("");
     setNote("");
+    setIsInstallment(false);
+    setInstallmentCount("1");
     setSelectedDate(new Date());
+    setFirstInstallmentDate(new Date());
     setIsDatePickerVisible(false);
+    setIsInstallmentDatePickerVisible(false);
   };
 
   const handleClose = () => {
@@ -67,6 +79,7 @@ export default function IncomeTransactionModal({
 
   const handleSave = () => {
     const parsedAmount = Number(amount.replace(",", "."));
+    const parsedInstallmentCount = Number(installmentCount);
 
     if (!selectedField) {
       Alert.alert("Uyarı", "Lütfen alan seç.");
@@ -78,15 +91,36 @@ export default function IncomeTransactionModal({
       return;
     }
 
-    onSave({
-      id: Date.now(),
-      title: selectedField,
-      category: "Gelir",
-      amount: parsedAmount,
-      type: "income",
-      date: selectedDateText,
-      note: note.trim() || undefined,
-    });
+    if (
+      isInstallment &&
+      (!installmentCount.trim() ||
+        Number.isNaN(parsedInstallmentCount) ||
+        parsedInstallmentCount < 1)
+    ) {
+      Alert.alert("Uyarı", "Lütfen geçerli bir taksit sayısı gir.");
+      return;
+    }
+
+    const count = isInstallment ? parsedInstallmentCount : 1;
+    const installmentAmount = parsedAmount / count;
+    const baseDate = isInstallment ? firstInstallmentDate : selectedDate;
+
+    const newTransactions: Transaction[] = Array.from({ length: count }).map(
+      (_, index) => ({
+        id: Date.now() + index,
+        title:
+          isInstallment && count > 1
+            ? `${selectedField} ${index + 1}/${count}`
+            : selectedField,
+        category: "Gider",
+        amount: installmentAmount,
+        type: "expense",
+        date: formatDateTR(addMonthsToDate(baseDate, index)),
+        note: note.trim() || undefined,
+      }),
+    );
+
+    onSave(newTransactions);
 
     resetForm();
     onClose();
@@ -103,12 +137,36 @@ export default function IncomeTransactionModal({
             style={styles.modalCard}
             onPress={(event) => event.stopPropagation()}
           >
-            <View style={styles.header}>
-              <Text style={styles.title}>Gelir Ekle</Text>
+            <View style={styles.headerRow}>
+              <View>
+                <Text style={styles.title}>Gider Ekle</Text>
 
-              <Text style={styles.description}>
-                İşlem detaylarını doldur ve kaydet.
-              </Text>
+                <Text style={styles.description}>
+                  İşlem detaylarını doldur ve kaydet.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={[
+                  styles.installmentToggle,
+                  isInstallment && styles.installmentToggleActive,
+                ]}
+                onPress={() => setIsInstallment((current) => !current)}
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    isInstallment && styles.checkboxActive,
+                  ]}
+                >
+                  {isInstallment ? (
+                    <Ionicons name="checkmark" size={15} color={colors.white} />
+                  ) : null}
+                </View>
+
+                <Text style={styles.installmentText}>Taksitli gider</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.divider} />
@@ -182,7 +240,7 @@ export default function IncomeTransactionModal({
                         <Text style={styles.dropdownText}>Seçiniz</Text>
                       </TouchableOpacity>
 
-                      {incomeFields.map((field) => (
+                      {expenseFields.map((field) => (
                         <TouchableOpacity
                           key={field}
                           activeOpacity={0.8}
@@ -197,7 +255,7 @@ export default function IncomeTransactionModal({
                               <Ionicons
                                 name="checkmark"
                                 size={19}
-                                color={colors.income}
+                                color={colors.expense}
                               />
                             ) : null}
                           </View>
@@ -234,6 +292,41 @@ export default function IncomeTransactionModal({
                 </View>
               </View>
 
+              {isInstallment ? (
+                <View style={styles.installmentBox}>
+                  <Text style={styles.installmentTitle}>Taksit Bilgisi</Text>
+
+                  <Text style={styles.installmentDescription}>
+                    Girilen toplam tutar taksit sayısına bölünür ve her ay ayrı
+                    gider olarak eklenir.
+                  </Text>
+
+                  <View style={styles.twoColumnRow}>
+                    <View style={styles.column}>
+                      <Text style={styles.label}>Kaç Taksit</Text>
+
+                      <AppInput
+                        value={installmentCount}
+                        onChangeText={setInstallmentCount}
+                        placeholder="1"
+                        keyboardType="number-pad"
+                        height={46}
+                      />
+                    </View>
+
+                    <View style={styles.column}>
+                      <Text style={styles.label}>İlk Taksit Tarihi</Text>
+
+                      <AppDateField
+                        value={firstInstallmentDateText}
+                        onPress={() => setIsInstallmentDatePickerVisible(true)}
+                        marginBottom={0}
+                      />
+                    </View>
+                  </View>
+                </View>
+              ) : null}
+
               <Text style={styles.label}>Not</Text>
 
               <AppInput
@@ -258,9 +351,10 @@ export default function IncomeTransactionModal({
               <AppButton
                 title="Kaydet"
                 onPress={handleSave}
-                variant="primary"
+                variant="danger"
                 width={100}
                 height={42}
+                style={styles.saveButton}
               />
             </View>
 
@@ -269,6 +363,13 @@ export default function IncomeTransactionModal({
               value={selectedDate}
               onClose={() => setIsDatePickerVisible(false)}
               onConfirm={setSelectedDate}
+            />
+
+            <AppDatePickerModal
+              visible={isInstallmentDatePickerVisible}
+              value={firstInstallmentDate}
+              onClose={() => setIsInstallmentDatePickerVisible(false)}
+              onConfirm={setFirstInstallmentDate}
             />
           </Pressable>
         </KeyboardAvoidingView>
@@ -302,7 +403,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
     elevation: 10,
   },
-  header: {},
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    alignItems: "flex-start",
+  },
   title: {
     color: colors.white,
     fontSize: 22,
@@ -313,6 +419,38 @@ const styles = StyleSheet.create({
     color: colors.label,
     fontSize: 12,
     fontWeight: "600",
+  },
+  installmentToggle: {
+    height: 38,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.expenseBorder,
+    backgroundColor: "rgba(255, 92, 124, 0.08)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  installmentToggleActive: {
+    backgroundColor: "rgba(255, 92, 124, 0.16)",
+  },
+  checkbox: {
+    width: 19,
+    height: 19,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.expenseBorder,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxActive: {
+    backgroundColor: colors.expense,
+    borderColor: colors.expense,
+  },
+  installmentText: {
+    color: "#fda4af",
+    fontSize: 12,
+    fontWeight: "900",
   },
   divider: {
     height: 1,
@@ -403,6 +541,27 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 12,
   },
+  installmentBox: {
+    marginBottom: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.expenseBorder,
+    backgroundColor: "rgba(255, 92, 124, 0.06)",
+    padding: 14,
+  },
+  installmentTitle: {
+    color: "#fecdd3",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  installmentDescription: {
+    color: colors.label,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "600",
+    marginTop: 6,
+    marginBottom: 12,
+  },
   noteInput: {
     marginBottom: 0,
   },
@@ -414,5 +573,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: 10,
+  },
+  saveButton: {
+    backgroundColor: colors.expense,
+    borderColor: colors.expense,
   },
 });

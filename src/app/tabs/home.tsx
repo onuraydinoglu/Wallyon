@@ -14,9 +14,14 @@ import BalanceCard from "../../components/home/BalanceCard";
 import HomeHeader from "../../components/home/HomeHeader";
 import SummaryCard from "../../components/home/SummaryCard";
 import TransactionItem from "../../components/home/TransactionItem";
+
+import ExpenseFieldsModal from "../../components/transaction/ExpenseFieldsModal";
+import ExpenseTransactionModal from "../../components/transaction/ExpenseTransactionModal";
 import IncomeFieldsModal from "../../components/transaction/IncomeFieldsModal";
 import IncomeTransactionModal from "../../components/transaction/IncomeTransactionModal";
+
 import { colors } from "../../constants/theme";
+import { defaultExpenseFields } from "../../data/expenseFields";
 import { defaultIncomeFields } from "../../data/incomeFields";
 import { transactions as initialTransactions } from "../../data/transactions";
 import { Transaction } from "../../types/transaction";
@@ -30,8 +35,15 @@ export default function HomeScreen() {
   const [incomeFields, setIncomeFields] =
     useState<string[]>(defaultIncomeFields);
 
+  const [expenseFields, setExpenseFields] =
+    useState<string[]>(defaultExpenseFields);
+
   const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [isIncomeFieldsModalVisible, setIsIncomeFieldsModalVisible] =
+    useState(false);
+
+  const [isExpenseModalVisible, setIsExpenseModalVisible] = useState(false);
+  const [isExpenseFieldsModalVisible, setIsExpenseFieldsModalVisible] =
     useState(false);
 
   const totalIncome = transactions
@@ -71,6 +83,33 @@ export default function HomeScreen() {
 
   const handleDeleteIncomeField = (fieldName: string) => {
     setIncomeFields((currentFields) =>
+      currentFields.filter((field) => field !== fieldName),
+    );
+  };
+
+  const handleSaveExpense = (newTransactions: Transaction[]) => {
+    setTransactions((currentTransactions) => [
+      ...newTransactions,
+      ...currentTransactions,
+    ]);
+  };
+
+  const handleAddExpenseField = (fieldName: string) => {
+    setExpenseFields((currentFields) => {
+      const isAlreadyExists = currentFields.some(
+        (field) => field.toLowerCase() === fieldName.toLowerCase(),
+      );
+
+      if (isAlreadyExists) {
+        return currentFields;
+      }
+
+      return [...currentFields, fieldName];
+    });
+  };
+
+  const handleDeleteExpenseField = (fieldName: string) => {
+    setExpenseFields((currentFields) =>
       currentFields.filter((field) => field !== fieldName),
     );
   };
@@ -128,6 +167,7 @@ export default function HomeScreen() {
             color={colors.expense}
             iconBackgroundColor={colors.expenseSoft}
             borderColor={colors.expenseBorder}
+            onPress={() => setIsExpenseModalVisible(true)}
           />
 
           <ActionButton
@@ -176,6 +216,22 @@ export default function HomeScreen() {
         onClose={() => setIsIncomeFieldsModalVisible(false)}
         onAddField={handleAddIncomeField}
         onDeleteField={handleDeleteIncomeField}
+      />
+
+      <ExpenseTransactionModal
+        visible={isExpenseModalVisible}
+        expenseFields={expenseFields}
+        onClose={() => setIsExpenseModalVisible(false)}
+        onOpenFieldsModal={() => setIsExpenseFieldsModalVisible(true)}
+        onSave={handleSaveExpense}
+      />
+
+      <ExpenseFieldsModal
+        visible={isExpenseFieldsModalVisible}
+        fields={expenseFields}
+        onClose={() => setIsExpenseFieldsModalVisible(false)}
+        onAddField={handleAddExpenseField}
+        onDeleteField={handleDeleteExpenseField}
       />
     </SafeAreaView>
   );

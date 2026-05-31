@@ -339,6 +339,18 @@ export default function HomeScreen() {
     );
   };
 
+  const handleDeleteTransaction = (transactionId: number) => {
+    setTransactions((currentTransactions) =>
+      currentTransactions.filter(
+        (transaction) => transaction.id !== transactionId,
+      ),
+    );
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    console.log("Düzenlenecek işlem:", transaction);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -423,7 +435,12 @@ export default function HomeScreen() {
           </View>
 
           {currentMonthTransactions.map((item) => (
-            <TransactionItem key={item.id} transaction={item} />
+            <TransactionItem
+              key={item.id}
+              transaction={item}
+              onEdit={handleEditTransaction}
+              onDelete={handleDeleteTransaction}
+            />
           ))}
         </View>
       </ScrollView>

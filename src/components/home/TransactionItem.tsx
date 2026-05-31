@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../../constants/theme";
 import { Transaction, TransactionType } from "../../types/transaction";
 import { formatCurrency } from "../../utils/formatCurrency";
 
 type TransactionItemProps = {
   transaction: Transaction;
+  onEdit?: (transaction: Transaction) => void;
+  onDelete?: (transactionId: number) => void;
 };
 
 const getTransactionIcon = (
@@ -33,7 +35,11 @@ const getAmountPrefix = (type: TransactionType) => {
   return "-";
 };
 
-export default function TransactionItem({ transaction }: TransactionItemProps) {
+export default function TransactionItem({
+  transaction,
+  onEdit,
+  onDelete,
+}: TransactionItemProps) {
   const transactionColor = getTransactionColor(transaction.type);
 
   return (
@@ -54,23 +60,43 @@ export default function TransactionItem({ transaction }: TransactionItemProps) {
           />
         </View>
 
-        <View>
+        <View style={styles.transactionInfo}>
           <Text style={styles.transactionTitle}>{transaction.title}</Text>
           <Text style={styles.transactionDate}>{transaction.date}</Text>
         </View>
       </View>
 
-      <Text
-        style={[
-          styles.transactionAmount,
-          {
-            color: transactionColor,
-          },
-        ]}
-      >
-        {getAmountPrefix(transaction.type)}
-        {formatCurrency(transaction.amount)}
-      </Text>
+      <View style={styles.amountWrapper}>
+        <Text
+          style={[
+            styles.transactionAmount,
+            {
+              color: transactionColor,
+            },
+          ]}
+        >
+          {getAmountPrefix(transaction.type)}
+          {formatCurrency(transaction.amount)}
+        </Text>
+      </View>
+
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={[styles.actionButton, styles.editButton]}
+          onPress={() => onEdit?.(transaction)}
+        >
+          <Ionicons name="create-outline" size={16} color="#c7d2fe" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={() => onDelete?.(transaction.id)}
+        >
+          <Ionicons name="trash-outline" size={16} color="#fda4af" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -80,7 +106,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     borderTopWidth: 1,
     borderTopColor: "rgba(148, 163, 184, 0.08)",
   },
@@ -88,6 +113,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    minWidth: 0,
   },
   transactionIcon: {
     width: 46,
@@ -96,6 +122,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
+  },
+  transactionInfo: {
+    flex: 1,
+    minWidth: 0,
   },
   transactionTitle: {
     color: colors.white,
@@ -108,8 +138,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+  amountWrapper: {
+    width: 110,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 10,
+  },
   transactionAmount: {
     fontSize: 14,
     fontWeight: "900",
+    textAlign: "center",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+  actionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  editButton: {
+    backgroundColor: "rgba(67, 76, 160, 0.45)",
+    borderColor: "rgba(129, 140, 248, 0.22)",
+  },
+  deleteButton: {
+    backgroundColor: "rgba(118, 32, 65, 0.45)",
+    borderColor: "rgba(251, 113, 133, 0.22)",
   },
 });

@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 110,
+    paddingBottom: 31,
   },
 
   summaryGrid: {

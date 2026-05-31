@@ -37,7 +37,11 @@ export default function MonthlyTransactionDetails({
         >
           <Text style={styles.summaryLabel}>Gelir</Text>
 
-          <Text style={[styles.summaryValue, { color: colors.income }]}>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={[styles.summaryValue, { color: colors.income }]}
+          >
             + {formatCurrency(selectedMonthData.totalIncome)}
           </Text>
         </View>
@@ -53,7 +57,11 @@ export default function MonthlyTransactionDetails({
         >
           <Text style={styles.summaryLabel}>Gider</Text>
 
-          <Text style={[styles.summaryValue, { color: colors.expense }]}>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={[styles.summaryValue, { color: colors.expense }]}
+          >
             - {formatCurrency(selectedMonthData.totalExpense)}
           </Text>
         </View>
@@ -69,7 +77,11 @@ export default function MonthlyTransactionDetails({
         >
           <Text style={styles.summaryLabel}>Yatırım</Text>
 
-          <Text style={[styles.summaryValue, { color: colors.investment }]}>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={[styles.summaryValue, { color: colors.investment }]}
+          >
             - {formatCurrency(selectedMonthData.totalInvestment)}
           </Text>
         </View>
@@ -86,6 +98,8 @@ export default function MonthlyTransactionDetails({
           <Text style={styles.summaryLabel}>Kalan</Text>
 
           <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
             style={[
               styles.summaryValue,
               {
@@ -167,10 +181,13 @@ const styles = StyleSheet.create({
 
   summaryBox: {
     flex: 1,
+    minHeight: 70,
     borderRadius: 18,
-    paddingHorizontal: 1,
+    paddingHorizontal: 10,
     paddingVertical: 14,
     borderWidth: 1,
+    justifyContent: "center",
+    overflow: "hidden",
   },
 
   summaryLabel: {

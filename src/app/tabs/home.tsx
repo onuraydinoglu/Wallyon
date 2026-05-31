@@ -19,10 +19,13 @@ import ExpenseFieldsModal from "../../components/transaction/ExpenseFieldsModal"
 import ExpenseTransactionModal from "../../components/transaction/ExpenseTransactionModal";
 import IncomeFieldsModal from "../../components/transaction/IncomeFieldsModal";
 import IncomeTransactionModal from "../../components/transaction/IncomeTransactionModal";
+import InvestmentFieldsModal from "../../components/transaction/InvestmentFieldsModal";
+import InvestmentTransactionModal from "../../components/transaction/InvestmentTransactionModal";
 
 import { colors } from "../../constants/theme";
 import { defaultExpenseFields } from "../../data/expenseFields";
 import { defaultIncomeFields } from "../../data/incomeFields";
+import { defaultInvestmentFields } from "../../data/investmentFields";
 import { transactions as initialTransactions } from "../../data/transactions";
 import { Transaction } from "../../types/transaction";
 
@@ -38,12 +41,21 @@ export default function HomeScreen() {
   const [expenseFields, setExpenseFields] =
     useState<string[]>(defaultExpenseFields);
 
+  const [investmentFields, setInvestmentFields] = useState<string[]>(
+    defaultInvestmentFields,
+  );
+
   const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [isIncomeFieldsModalVisible, setIsIncomeFieldsModalVisible] =
     useState(false);
 
   const [isExpenseModalVisible, setIsExpenseModalVisible] = useState(false);
   const [isExpenseFieldsModalVisible, setIsExpenseFieldsModalVisible] =
+    useState(false);
+
+  const [isInvestmentModalVisible, setIsInvestmentModalVisible] =
+    useState(false);
+  const [isInvestmentFieldsModalVisible, setIsInvestmentFieldsModalVisible] =
     useState(false);
 
   const totalIncome = transactions
@@ -61,6 +73,20 @@ export default function HomeScreen() {
   const remainingBalance = totalIncome - totalExpense - totalInvestment;
 
   const handleSaveIncome = (transaction: Transaction) => {
+    setTransactions((currentTransactions) => [
+      transaction,
+      ...currentTransactions,
+    ]);
+  };
+
+  const handleSaveExpense = (newTransactions: Transaction[]) => {
+    setTransactions((currentTransactions) => [
+      ...newTransactions,
+      ...currentTransactions,
+    ]);
+  };
+
+  const handleSaveInvestment = (transaction: Transaction) => {
     setTransactions((currentTransactions) => [
       transaction,
       ...currentTransactions,
@@ -87,13 +113,6 @@ export default function HomeScreen() {
     );
   };
 
-  const handleSaveExpense = (newTransactions: Transaction[]) => {
-    setTransactions((currentTransactions) => [
-      ...newTransactions,
-      ...currentTransactions,
-    ]);
-  };
-
   const handleAddExpenseField = (fieldName: string) => {
     setExpenseFields((currentFields) => {
       const isAlreadyExists = currentFields.some(
@@ -110,6 +129,26 @@ export default function HomeScreen() {
 
   const handleDeleteExpenseField = (fieldName: string) => {
     setExpenseFields((currentFields) =>
+      currentFields.filter((field) => field !== fieldName),
+    );
+  };
+
+  const handleAddInvestmentField = (fieldName: string) => {
+    setInvestmentFields((currentFields) => {
+      const isAlreadyExists = currentFields.some(
+        (field) => field.toLowerCase() === fieldName.toLowerCase(),
+      );
+
+      if (isAlreadyExists) {
+        return currentFields;
+      }
+
+      return [...currentFields, fieldName];
+    });
+  };
+
+  const handleDeleteInvestmentField = (fieldName: string) => {
+    setInvestmentFields((currentFields) =>
       currentFields.filter((field) => field !== fieldName),
     );
   };
@@ -176,6 +215,7 @@ export default function HomeScreen() {
             color={colors.investment}
             iconBackgroundColor={colors.investmentSoft}
             borderColor={colors.investmentBorder}
+            onPress={() => setIsInvestmentModalVisible(true)}
           />
 
           <ActionButton
@@ -232,6 +272,22 @@ export default function HomeScreen() {
         onClose={() => setIsExpenseFieldsModalVisible(false)}
         onAddField={handleAddExpenseField}
         onDeleteField={handleDeleteExpenseField}
+      />
+
+      <InvestmentTransactionModal
+        visible={isInvestmentModalVisible}
+        investmentFields={investmentFields}
+        onClose={() => setIsInvestmentModalVisible(false)}
+        onOpenFieldsModal={() => setIsInvestmentFieldsModalVisible(true)}
+        onSave={handleSaveInvestment}
+      />
+
+      <InvestmentFieldsModal
+        visible={isInvestmentFieldsModalVisible}
+        fields={investmentFields}
+        onClose={() => setIsInvestmentFieldsModalVisible(false)}
+        onAddField={handleAddInvestmentField}
+        onDeleteField={handleDeleteInvestmentField}
       />
     </SafeAreaView>
   );

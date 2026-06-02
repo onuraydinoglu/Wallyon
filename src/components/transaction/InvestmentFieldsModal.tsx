@@ -58,7 +58,7 @@ export default function InvestmentFieldsModal({
             <AppInput
               value={fieldName}
               onChangeText={setFieldName}
-              placeholder="Örn: Prim, Elektrik, Altın"
+              placeholder="Örn: Altın, Döviz, Borsa"
               style={styles.input}
               height={42}
               returnKeyType="done"
@@ -97,9 +97,9 @@ export default function InvestmentFieldsModal({
                     onPress={() => onDeleteField(item)}
                     size={38}
                     iconSize={20}
-                    iconColor="#fda4af"
-                    backgroundColor="rgba(255, 92, 124, 0.18)"
-                    borderColor="rgba(255, 92, 124, 0.18)"
+                    iconColor="#c4b5fd"
+                    backgroundColor="rgba(139, 92, 246, 0.18)"
+                    borderColor="rgba(139, 92, 246, 0.18)"
                   />
                 </View>
               )}

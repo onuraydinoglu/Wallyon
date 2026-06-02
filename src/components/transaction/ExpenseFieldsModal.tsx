@@ -58,7 +58,7 @@ export default function ExpenseFieldsModal({
             <AppInput
               value={fieldName}
               onChangeText={setFieldName}
-              placeholder="Örn: Kira, Elektrik, Market"
+              placeholder="Örn: Kira, Market, Fatura"
               style={styles.input}
               height={42}
               returnKeyType="done"

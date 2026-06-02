@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { STORAGE_KEYS } from "../constants/storageKeys";
 
 export const getStoredUserName = async () => {
@@ -18,5 +19,8 @@ export const deleteProfileStorage = async () => {
     STORAGE_KEYS.userName,
     STORAGE_KEYS.transactions,
     STORAGE_KEYS.notes,
+    STORAGE_KEYS.incomeFields,
+    STORAGE_KEYS.expenseFields,
+    STORAGE_KEYS.investmentFields,
   ]);
 };

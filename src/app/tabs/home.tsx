@@ -1,4 +1,5 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,13 +13,48 @@ import { colors } from "../../constants/theme";
 import { useHomeModals } from "../../hooks/useHomeModals";
 import { useTransactionFields } from "../../hooks/useTransactionFields";
 import { useTransactions } from "../../hooks/useTransactions";
+import { getStoredUserName } from "../../services/profileStorage";
 import { Transaction } from "../../types/transaction";
 import { formatTodayTR } from "../../utils/transactionDateUtils";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name?: string }>();
+
+  const [storedName, setStoredName] = useState("");
+
   const todayText = formatTodayTR();
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadUserName = async () => {
+        try {
+          if (name && name.trim()) {
+            setStoredName(name);
+            return;
+          }
+
+          const savedName = await getStoredUserName();
+
+          if (isActive) {
+            setStoredName(savedName || "");
+          }
+        } catch (error) {
+          console.log("User name could not be loaded on home:", error);
+        }
+      };
+
+      loadUserName();
+
+      return () => {
+        isActive = false;
+      };
+    }, [name]),
+  );
+
+  const displayName = name && name.trim() ? name : storedName;
 
   const {
     currentMonthTransactions,
@@ -97,7 +133,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        <HomeHeader name={name} />
+        <HomeHeader name={displayName} />
 
         <BalanceCard remainingBalance={remainingBalance} />
 

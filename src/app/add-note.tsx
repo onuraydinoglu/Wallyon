@@ -114,8 +114,7 @@ export default function AddNoteScreen() {
             <View style={styles.infoContent}>
               <Text style={styles.infoTitle}>İleri tarihli not</Text>
               <Text style={styles.infoText}>
-                Tarihi ileri bir gün seçersen, günü geldiğinde otomatik olarak
-                günün notları arasında görünür.
+                Günü gelince notların arasında görünür.
               </Text>
             </View>
           </View>

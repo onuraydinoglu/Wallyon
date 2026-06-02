@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  FlatList,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -29,6 +30,12 @@ type IncomeTransactionModalProps = {
   onClose: () => void;
   onOpenFieldsModal: () => void;
   onSave: (transaction: Transaction) => void;
+};
+
+type DropdownLayout = {
+  top: number;
+  left: number;
+  width: number;
 };
 
 const parseTransactionDate = (dateText: string) => {
@@ -61,8 +68,13 @@ export default function IncomeTransactionModal({
   onOpenFieldsModal,
   onSave,
 }: IncomeTransactionModalProps) {
+  const selectButtonRef = useRef<View>(null);
+
   const [selectedField, setSelectedField] = useState("");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const [selectDropdownLayout, setSelectDropdownLayout] =
+    useState<DropdownLayout | null>(null);
+
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -73,6 +85,7 @@ export default function IncomeTransactionModal({
   const resetForm = () => {
     setSelectedField("");
     setIsSelectOpen(false);
+    setSelectDropdownLayout(null);
     setAmount("");
     setNote("");
     setSelectedDate(new Date());
@@ -88,6 +101,7 @@ export default function IncomeTransactionModal({
       setNote(editTransaction.note || "");
       setSelectedDate(parseTransactionDate(editTransaction.date));
       setIsSelectOpen(false);
+      setSelectDropdownLayout(null);
       setIsDatePickerVisible(false);
       return;
     }
@@ -102,7 +116,32 @@ export default function IncomeTransactionModal({
 
   const handleOpenFieldsModal = () => {
     setIsSelectOpen(false);
+    setSelectDropdownLayout(null);
     onOpenFieldsModal();
+  };
+
+  const handleOpenSelect = () => {
+    if (isSelectOpen) {
+      setIsSelectOpen(false);
+      setSelectDropdownLayout(null);
+      return;
+    }
+
+    selectButtonRef.current?.measureInWindow((x, y, width, height) => {
+      setSelectDropdownLayout({
+        top: y + height + 6,
+        left: x,
+        width,
+      });
+
+      setIsSelectOpen(true);
+    });
+  };
+
+  const handleSelectField = (field: string) => {
+    setSelectedField(field);
+    setIsSelectOpen(false);
+    setSelectDropdownLayout(null);
   };
 
   const handleSave = () => {
@@ -133,177 +172,217 @@ export default function IncomeTransactionModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <Pressable style={styles.backdrop} onPress={handleClose}>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <Pressable
-            style={styles.modalCard}
-            onPress={(event) => event.stopPropagation()}
+    <>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleClose}
+        statusBarTranslucent
+      >
+        <Pressable style={styles.backdrop} onPress={handleClose}>
+          <KeyboardAvoidingView
+            style={styles.keyboardView}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
-            <View style={styles.header}>
-              <Text style={styles.title}>
-                {editTransaction ? "Gelir Güncelle" : "Gelir Ekle"}
-              </Text>
-              <Text style={styles.description}>
-                İşlem detaylarını doldur ve kaydet.
-              </Text>
-            </View>
-
-            <View style={styles.divider} />
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.formContent}
-              keyboardShouldPersistTaps="handled"
-              nestedScrollEnabled
-              scrollEnabled={!isSelectOpen}
+            <Pressable
+              style={styles.modalCard}
+              onPress={(event) => event.stopPropagation()}
             >
-              <Text style={styles.label}>Alan</Text>
+              <View style={styles.header}>
+                <Text style={styles.title}>
+                  {editTransaction ? "Gelir Güncelle" : "Gelir Ekle"}
+                </Text>
+                <Text style={styles.description}>
+                  İşlem detaylarını doldur ve kaydet.
+                </Text>
+              </View>
 
-              <View style={styles.selectWrapper}>
-                <View style={styles.selectRow}>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[
-                      styles.selectButton,
-                      isSelectOpen && styles.selectButtonActive,
-                    ]}
-                    onPress={() => setIsSelectOpen((current) => !current)}
-                  >
-                    <Text
-                      style={[
-                        styles.selectText,
-                        !selectedField && styles.placeholderText,
-                      ]}
-                    >
-                      {selectedField || "Seçiniz"}
-                    </Text>
+              <View style={styles.divider} />
 
-                    <Ionicons
-                      name={isSelectOpen ? "chevron-up" : "chevron-down"}
-                      size={18}
-                      color={colors.white}
-                    />
-                  </TouchableOpacity>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.formContent}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled
+                scrollEnabled={!isSelectOpen}
+              >
+                <Text style={styles.label}>Alan</Text>
 
-                  <AppIconButton
-                    icon="add"
-                    onPress={handleOpenFieldsModal}
-                    size={46}
-                    iconSize={22}
-                  />
-                </View>
-
-                {isSelectOpen ? (
-                  <View style={styles.dropdown}>
-                    <ScrollView
-                      style={styles.dropdownScroll}
-                      nestedScrollEnabled
-                      keyboardShouldPersistTaps="handled"
-                      showsVerticalScrollIndicator
-                      scrollEnabled={incomeFields.length > 3}
+                <View style={styles.selectWrapper}>
+                  <View style={styles.selectRow}>
+                    <View
+                      ref={selectButtonRef}
+                      collapsable={false}
+                      style={styles.selectButtonWrapper}
                     >
                       <TouchableOpacity
                         activeOpacity={0.85}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setSelectedField("");
-                          setIsSelectOpen(false);
-                        }}
+                        style={[
+                          styles.selectButton,
+                          isSelectOpen && styles.selectButtonActive,
+                        ]}
+                        onPress={handleOpenSelect}
                       >
-                        <View style={styles.dropdownIconPlaceholder} />
-                        <Text style={styles.dropdownText}>Seçiniz</Text>
-                      </TouchableOpacity>
-
-                      {incomeFields.map((field) => (
-                        <TouchableOpacity
-                          key={field}
-                          activeOpacity={0.85}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setSelectedField(field);
-                            setIsSelectOpen(false);
-                          }}
+                        <Text
+                          style={[
+                            styles.selectText,
+                            !selectedField && styles.placeholderText,
+                          ]}
                         >
-                          {selectedField === field ? (
-                            <Ionicons
-                              name="checkmark"
-                              size={18}
-                              color={colors.income}
-                            />
-                          ) : (
-                            <View style={styles.dropdownIconPlaceholder} />
-                          )}
+                          {selectedField || "Seçiniz"}
+                        </Text>
 
-                          <Text style={styles.dropdownText}>{field}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
+                        <Ionicons
+                          name={isSelectOpen ? "chevron-up" : "chevron-down"}
+                          size={18}
+                          color={colors.white}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <AppIconButton
+                      icon="add"
+                      onPress={handleOpenFieldsModal}
+                      size={46}
+                      iconSize={22}
+                    />
                   </View>
-                ) : null}
-              </View>
-
-              <View style={styles.twoColumnRow}>
-                <View style={styles.column}>
-                  <Text style={styles.label}>Tutar</Text>
-                  <AppInput
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="numeric"
-                    placeholder="0"
-                    style={styles.input}
-                  />
                 </View>
 
-                <View style={styles.column}>
-                  <Text style={styles.label}>Tarih</Text>
-                  <AppDateField
-                    value={selectedDateText}
-                    onPress={() => setIsDatePickerVisible(true)}
-                  />
+                <View style={styles.twoColumnRow}>
+                  <View style={styles.column}>
+                    <Text style={styles.label}>Tutar</Text>
+                    <AppInput
+                      value={amount}
+                      onChangeText={setAmount}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      style={styles.input}
+                    />
+                  </View>
+
+                  <View style={styles.column}>
+                    <Text style={styles.label}>Tarih</Text>
+                    <AppDateField
+                      value={selectedDateText}
+                      onPress={() => {
+                        setIsSelectOpen(false);
+                        setSelectDropdownLayout(null);
+                        setIsDatePickerVisible(true);
+                      }}
+                    />
+                  </View>
                 </View>
+
+                <Text style={styles.label}>Not</Text>
+                <AppInput
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder="Not gir"
+                  multilineInput
+                  height={84}
+                  textAlignVertical="top"
+                  style={styles.noteInput}
+                />
+              </ScrollView>
+
+              <View style={styles.footer}>
+                <AppButton
+                  title="Vazgeç"
+                  variant="secondary"
+                  width={92}
+                  onPress={handleClose}
+                />
+
+                <AppButton
+                  title={editTransaction ? "Güncelle" : "Kaydet"}
+                  width={92}
+                  onPress={handleSave}
+                />
               </View>
+            </Pressable>
+          </KeyboardAvoidingView>
+        </Pressable>
+      </Modal>
 
-              <Text style={styles.label}>Not</Text>
-              <AppInput
-                value={note}
-                onChangeText={setNote}
-                placeholder="Not gir"
-                multilineInput
-                height={84}
-                textAlignVertical="top"
-                style={styles.noteInput}
-              />
-            </ScrollView>
+      <Modal
+        visible={visible && isSelectOpen}
+        transparent
+        animationType="none"
+        onRequestClose={() => {
+          setIsSelectOpen(false);
+          setSelectDropdownLayout(null);
+        }}
+        statusBarTranslucent
+      >
+        <Pressable
+          style={styles.dropdownModalOverlay}
+          onPress={() => {
+            setIsSelectOpen(false);
+            setSelectDropdownLayout(null);
+          }}
+        >
+          <View
+            style={[
+              styles.dropdown,
+              {
+                top: selectDropdownLayout?.top ?? 150,
+                left: selectDropdownLayout?.left ?? 18,
+                width: selectDropdownLayout?.width ?? 260,
+              },
+            ]}
+            onStartShouldSetResponder={() => true}
+          >
+            <FlatList
+              data={["", ...incomeFields]}
+              keyExtractor={(item, index) => `${item || "empty"}-${index}`}
+              style={styles.dropdownScroll}
+              contentContainerStyle={styles.dropdownContent}
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator
+              renderItem={({ item }) => {
+                const isPlaceholder = item === "";
+                const isSelected = selectedField === item;
 
-            <View style={styles.footer}>
-              <AppButton
-                title="Vazgeç"
-                variant="secondary"
-                width={92}
-                onPress={handleClose}
-              />
+                return (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    style={[
+                      styles.dropdownItem,
+                      isSelected && styles.dropdownItemActive,
+                    ]}
+                    onPress={() => handleSelectField(item)}
+                  >
+                    {!isPlaceholder && selectedField === item ? (
+                      <Ionicons
+                        name="checkmark"
+                        size={18}
+                        color={colors.income}
+                      />
+                    ) : (
+                      <View style={styles.dropdownIconPlaceholder} />
+                    )}
 
-              <AppButton
-                title={editTransaction ? "Güncelle" : "Kaydet"}
-                width={92}
-                onPress={handleSave}
-              />
-            </View>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </Pressable>
+                    <Text style={styles.dropdownText}>
+                      {isPlaceholder ? "Seçiniz" : item}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </Pressable>
+      </Modal>
 
       <AppDatePickerModal
-        visible={isDatePickerVisible}
+        visible={visible && isDatePickerVisible}
         value={selectedDate}
         onClose={() => setIsDatePickerVisible(false)}
         onConfirm={setSelectedDate}
       />
-    </Modal>
+    </>
   );
 }
 
@@ -368,8 +447,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  selectButton: {
+  selectButtonWrapper: {
     flex: 1,
+  },
+  selectButton: {
+    width: "100%",
     minHeight: 46,
     borderRadius: 14,
     backgroundColor: colors.panel,
@@ -382,6 +464,8 @@ const styles = StyleSheet.create({
   },
   selectButtonActive: {
     borderColor: colors.white,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
   selectText: {
     color: colors.white,
@@ -391,30 +475,37 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: colors.white,
   },
+
+  dropdownModalOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
   dropdown: {
     position: "absolute",
-    top: 53,
-    left: 0,
-    right: 56,
-    zIndex: 50,
-    elevation: 50,
+    zIndex: 999,
+    elevation: 999,
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.65)",
     backgroundColor: colors.panel,
     overflow: "hidden",
-    maxHeight: 154,
+    maxHeight: 170,
   },
-
   dropdownScroll: {
-    maxHeight: 154,
+    maxHeight: 170,
+  },
+  dropdownContent: {
+    paddingVertical: 4,
   },
   dropdownItem: {
-    minHeight: 36,
+    minHeight: 38,
     paddingHorizontal: 13,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  dropdownItemActive: {
+    backgroundColor: "rgba(34, 197, 94, 0.12)",
   },
   dropdownIconPlaceholder: {
     width: 18,
@@ -425,6 +516,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
+
   twoColumnRow: {
     flexDirection: "row",
     gap: 10,

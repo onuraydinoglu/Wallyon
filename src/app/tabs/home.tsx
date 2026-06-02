@@ -1,13 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActionButton from "../../components/home/ActionButton";
@@ -103,8 +97,18 @@ const getCurrentMonthKey = () => {
   return `${year}-${month}`;
 };
 
+const formatTodayTR = () => {
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+};
+
 export default function HomeScreen() {
+  const router = useRouter();
   const { name } = useLocalSearchParams<{ name?: string }>();
+  const todayText = formatTodayTR();
 
   const [transactions, setTransactions] =
     useState<Transaction[]>(initialTransactions);
@@ -495,21 +499,19 @@ export default function HomeScreen() {
           />
 
           <ActionButton
-            title="Daha Fazla"
-            icon="ellipsis-horizontal"
+            title="Yeni Not"
+            icon="create-outline"
             color={colors.purpleLight}
             iconBackgroundColor={colors.purpleSoft}
             borderColor={colors.panelBorder}
+            onPress={() => router.push("/add-note")}
           />
         </View>
 
         <View style={styles.transactionsCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Son İşlemler</Text>
-
-            <TouchableOpacity activeOpacity={0.8}>
-              <Text style={styles.seeAllText}>Tümünü Gör</Text>
-            </TouchableOpacity>
+            <Text style={styles.todayText}>{todayText}</Text>
           </View>
 
           {currentMonthTransactions.map((item) => (
@@ -619,15 +621,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 10,
   },
   sectionTitle: {
     color: colors.white,
     fontSize: 20,
     fontWeight: "900",
   },
-  seeAllText: {
-    color: colors.purpleLight,
-    fontSize: 13,
+  todayText: {
+    color: colors.label,
+    fontSize: 12,
     fontWeight: "800",
+    textAlign: "right",
+    flexShrink: 1,
   },
 });

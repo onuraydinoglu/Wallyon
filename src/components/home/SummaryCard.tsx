@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+
 import { colors } from "../../constants/theme";
 import { formatCurrency } from "../../utils/formatCurrency";
 
@@ -20,7 +21,14 @@ export default function SummaryCard({
   return (
     <View style={styles.summaryCard}>
       <View style={styles.summaryTopRow}>
-        <Text style={styles.summaryLabel}>{title}</Text>
+        <Text
+          style={styles.summaryLabel}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.82}
+        >
+          {title}
+        </Text>
 
         <View
           style={[
@@ -32,7 +40,14 @@ export default function SummaryCard({
         />
       </View>
 
-      <Text style={styles.summaryAmount}>{formatCurrency(amount)}</Text>
+      <Text
+        style={styles.summaryAmount}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.72}
+      >
+        {formatCurrency(amount)}
+      </Text>
 
       <View style={styles.progressTrack}>
         <View
@@ -52,10 +67,12 @@ export default function SummaryCard({
 const styles = StyleSheet.create({
   summaryCard: {
     flex: 1,
-    minHeight: 130,
-    borderRadius: 22,
+    minWidth: 0,
+    minHeight: 118,
+    borderRadius: 20,
     backgroundColor: colors.panel,
-    padding: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.panelBorder,
   },
@@ -63,26 +80,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 6,
   },
   summaryLabel: {
+    flex: 1,
+    minWidth: 0,
     color: colors.label,
-    fontSize: 12,
+    fontSize: 10.5,
     fontWeight: "700",
   },
   summaryDot: {
-    width: 11,
-    height: 11,
+    width: 9,
+    height: 9,
     borderRadius: 999,
   },
   summaryAmount: {
-    marginTop: 18,
+    marginTop: 16,
     color: colors.white,
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "900",
   },
   progressTrack: {
-    height: 6,
-    marginTop: 22,
+    height: 5,
+    marginTop: 19,
     borderRadius: 999,
     overflow: "hidden",
     backgroundColor: "rgba(30, 41, 59, 0.9)",

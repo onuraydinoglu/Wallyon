@@ -1,4 +1,5 @@
 import { StyleSheet, TextInput, TextInputProps } from "react-native";
+
 import { colors } from "../../constants/theme";
 
 type AppInputProps = TextInputProps & {
@@ -16,13 +17,14 @@ export default function AppInput({
   return (
     <TextInput
       placeholderTextColor={placeholderTextColor}
-      textAlignVertical={multilineInput ? "top" : "center"}
       multiline={multilineInput}
+      textAlignVertical={multilineInput ? "top" : "center"}
       style={[
         styles.input,
         {
-          minHeight: height,
+          height,
           paddingTop: multilineInput ? 12 : 0,
+          paddingBottom: multilineInput ? 12 : 0,
         },
         style,
       ]}
@@ -41,5 +43,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     fontSize: 13,
     fontWeight: "700",
+    includeFontPadding: false,
   },
 });

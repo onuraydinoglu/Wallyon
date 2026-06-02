@@ -75,8 +75,20 @@ export default function TransactionItem({
         </View>
       </View>
 
-      <View style={styles.amountWrapper}>
-        <Text style={[styles.transactionAmount, { color: transactionColor }]}>
+      <View
+        style={[
+          styles.amountWrapper,
+          !showActions && styles.amountWrapperWithoutActions,
+        ]}
+      >
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.transactionAmount,
+            !showActions && styles.transactionAmountWithoutActions,
+            { color: transactionColor },
+          ]}
+        >
           {getAmountPrefix(transaction.type)}{" "}
           {formatCurrency(transaction.amount)}
         </Text>
@@ -159,10 +171,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
 
+  amountWrapperWithoutActions: {
+    marginLeft: 10,
+    marginRight: 0,
+    alignItems: "flex-end",
+  },
+
   transactionAmount: {
     fontSize: 14,
     fontWeight: "900",
     textAlign: "center",
+  },
+
+  transactionAmountWithoutActions: {
+    textAlign: "right",
   },
 
   actionButtons: {

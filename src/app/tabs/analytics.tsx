@@ -8,16 +8,13 @@ import AnalyticsHeader from "../../components/analytics/AnalyticsHeader";
 import MonthlySummaryCard from "../../components/analytics/MonthlySummaryCard";
 import MonthlyTransactionDetails from "../../components/analytics/MonthlyTransactionDetails";
 import { colors } from "../../constants/theme";
-import { transactions as initialTransactions } from "../../data/transactions";
 import { Transaction } from "../../types/transaction";
 import { getMonthlyAnalyticsData } from "../../utils/analyticsHelpers";
 
 const TRANSACTIONS_STORAGE_KEY = "WALLYON_TRANSACTIONS";
 
 export default function AnalyticsScreen() {
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(initialTransactions);
-
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
 
   useFocusEffect(
@@ -28,21 +25,22 @@ export default function AnalyticsScreen() {
             TRANSACTIONS_STORAGE_KEY,
           );
 
-          if (storedTransactions) {
-            const parsedTransactions = JSON.parse(
-              storedTransactions,
-            ) as Transaction[];
-
-            if (Array.isArray(parsedTransactions)) {
-              setTransactions(parsedTransactions);
-              return;
-            }
+          if (!storedTransactions) {
+            setTransactions([]);
+            return;
           }
 
-          setTransactions(initialTransactions);
+          const parsedTransactions = JSON.parse(storedTransactions);
+
+          if (Array.isArray(parsedTransactions)) {
+            setTransactions(parsedTransactions as Transaction[]);
+            return;
+          }
+
+          setTransactions([]);
         } catch (error) {
           console.log("Analytics transactions could not be loaded:", error);
-          setTransactions(initialTransactions);
+          setTransactions([]);
         }
       };
 
@@ -107,10 +105,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+
   contentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 20,

@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,7 +16,6 @@ import AppButton from "../components/ui/AppButton";
 import AppDateField from "../components/ui/AppDateField";
 import AppDatePickerModal from "../components/ui/AppDatePickerModal";
 import AppIconButton from "../components/ui/AppIconButton";
-import AppInput from "../components/ui/AppInput";
 import { colors } from "../constants/theme";
 import { getStoredNotes, saveStoredNotes } from "../services/noteStorage";
 import { Note } from "../types/note";
@@ -123,20 +123,20 @@ export default function AddNoteScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Not Başlığı</Text>
 
-              <View style={styles.inputWithIcon}>
+              <View style={styles.inputBox}>
                 <Ionicons
                   name="text-outline"
-                  size={18}
-                  color={colors.muted}
+                  size={21}
+                  color={colors.mutedLight}
                   style={styles.inputIcon}
                 />
 
-                <AppInput
+                <TextInput
                   value={title}
                   onChangeText={setTitle}
                   placeholder="Örn: Market alışverişi"
-                  height={58}
-                  style={styles.input}
+                  placeholderTextColor={colors.mutedLight}
+                  style={styles.textInput}
                 />
               </View>
             </View>
@@ -144,22 +144,22 @@ export default function AddNoteScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Açıklama</Text>
 
-              <View style={[styles.inputWithIcon, styles.textAreaWithIcon]}>
+              <View style={styles.descriptionBox}>
                 <Ionicons
                   name="document-text-outline"
-                  size={18}
-                  color={colors.muted}
-                  style={[styles.inputIcon, styles.textAreaIcon]}
+                  size={21}
+                  color={colors.mutedLight}
+                  style={styles.descriptionIcon}
                 />
 
-                <AppInput
+                <TextInput
                   value={description}
                   onChangeText={setDescription}
                   placeholder="Not detayını yaz"
-                  height={132}
-                  multilineInput
+                  placeholderTextColor={colors.mutedLight}
+                  style={styles.descriptionInput}
                   multiline
-                  style={[styles.input, styles.textArea]}
+                  textAlignVertical="top"
                 />
               </View>
             </View>
@@ -204,23 +204,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
   keyboardView: {
     flex: 1,
   },
+
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+
   contentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 32,
   },
+
   header: {
     marginTop: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+
   backButton: {
     shadowColor: "#000",
     shadowOpacity: 0.12,
@@ -228,15 +233,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 7 },
     elevation: 4,
   },
+
   hero: {
     marginTop: 28,
   },
+
   title: {
     color: colors.white,
     fontSize: 34,
     fontWeight: "900",
     letterSpacing: -0.8,
   },
+
   description: {
     marginTop: 8,
     color: colors.muted,
@@ -244,16 +252,19 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     fontWeight: "600",
   },
+
   infoCard: {
     marginTop: 24,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderRadius: 26,
     backgroundColor: colors.panel,
     borderWidth: 1,
     borderColor: colors.panelBorder,
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
   },
+
   infoIcon: {
     width: 42,
     height: 42,
@@ -265,21 +276,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
+
   infoContent: {
     flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
   },
+
   infoTitle: {
     color: colors.white,
     fontSize: 14,
     fontWeight: "900",
   },
+
   infoText: {
-    marginTop: 5,
+    marginTop: 4,
     color: colors.muted,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 17,
     fontWeight: "600",
   },
+
   card: {
     marginTop: 20,
     padding: 20,
@@ -293,48 +310,71 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     elevation: 6,
   },
+
   inputGroup: {
     marginBottom: 18,
   },
+
   label: {
     marginBottom: 8,
     color: colors.white,
     fontSize: 13,
     fontWeight: "900",
   },
-  inputWithIcon: {
-    minHeight: 58,
-    borderRadius: 21,
+
+  inputBox: {
+    height: 88,
+    borderRadius: 28,
     backgroundColor: colors.panel,
     borderWidth: 1,
     borderColor: colors.panelBorder,
     flexDirection: "row",
     alignItems: "center",
-    overflow: "hidden",
+    paddingHorizontal: 24,
   },
+
   inputIcon: {
-    marginLeft: 15,
-    marginRight: 8,
+    marginRight: 12,
   },
-  input: {
+
+  textInput: {
     flex: 1,
-    borderWidth: 0,
-    borderRadius: 0,
-    backgroundColor: "transparent",
-    paddingHorizontal: 0,
-    paddingRight: 15,
+    height: "100%",
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: "800",
+    paddingVertical: 0,
   },
-  textAreaWithIcon: {
-    minHeight: 132,
+
+  descriptionBox: {
+    minHeight: 200,
+    borderRadius: 28,
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+    flexDirection: "row",
     alignItems: "flex-start",
+    paddingHorizontal: 24,
+    paddingVertical: 28,
   },
-  textAreaIcon: {
-    marginTop: 18,
+
+  descriptionIcon: {
+    marginRight: 12,
+    marginTop: 1,
   },
-  textArea: {
+
+  descriptionInput: {
+    flex: 1,
+    minHeight: 135,
+    color: colors.white,
+    fontSize: 17,
+    fontWeight: "800",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingVertical: 0,
     textAlignVertical: "top",
-    paddingTop: 16,
   },
+
   helperText: {
     marginTop: 8,
     color: colors.muted,
@@ -342,6 +382,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: "700",
   },
+
   saveButton: {
     borderRadius: 21,
     shadowColor: colors.purple,

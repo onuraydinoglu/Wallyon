@@ -110,12 +110,8 @@ export default function NotesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <NotesHeader onAddPress={() => router.push("/add-note")} />
 
         <NoteProgressCard
@@ -185,11 +181,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  contentContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 32,
+    paddingTop: 24,
   },
   section: {
     marginTop: 26,

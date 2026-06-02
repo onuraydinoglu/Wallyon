@@ -10,9 +10,9 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {
           height: 70,
-          paddingTop: 10,
           backgroundColor: "#061426",
           borderTopWidth: 0,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -23,7 +23,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
+          title: "Ana Sayfa",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" color={color} size={size} />
           ),
@@ -33,7 +33,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="analytics"
         options={{
-          title: "Analytics",
+          title: "Analiz",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bar-chart" color={color} size={size} />
           ),
@@ -41,9 +41,19 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
+        name="notes"
+        options={{
+          title: "Notlar",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="checkbox-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Profil",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" color={color} size={size} />
           ),

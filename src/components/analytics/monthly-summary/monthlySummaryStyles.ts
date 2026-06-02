@@ -113,13 +113,13 @@ export const styles = StyleSheet.create({
   },
 
   iconCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 8,
   },
 
   incomeIcon: {
@@ -145,16 +145,16 @@ export const styles = StyleSheet.create({
   },
 
   summaryLabel: {
-    marginTop: 5,
+    marginTop: 3,
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "800",
     textAlign: "center",
   },
 
   summaryDivider: {
     width: 1,
-    height: 56,
+    height: 48,
     backgroundColor: colors.panelBorder,
   },
 

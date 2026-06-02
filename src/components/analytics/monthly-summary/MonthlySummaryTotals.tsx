@@ -20,8 +20,9 @@ export default function MonthlySummaryTotals({
     <View style={styles.summaryRow}>
       <View style={styles.summaryItem}>
         <View style={[styles.iconCircle, styles.incomeIcon]}>
-          <Ionicons name="arrow-down" size={20} color={colors.income} />
+          <Ionicons name="trending-up" size={18} color={colors.income} />
         </View>
+
         <Text style={styles.summaryValue}>{formatCurrency(totalIncome)}</Text>
         <Text style={styles.summaryLabel}>Gelir</Text>
       </View>
@@ -30,8 +31,9 @@ export default function MonthlySummaryTotals({
 
       <View style={styles.summaryItem}>
         <View style={[styles.iconCircle, styles.expenseIcon]}>
-          <Ionicons name="arrow-up" size={20} color={colors.expense} />
+          <Ionicons name="trending-down" size={18} color={colors.expense} />
         </View>
+
         <Text style={styles.summaryValue}>{formatCurrency(totalExpense)}</Text>
         <Text style={styles.summaryLabel}>Gider</Text>
       </View>
@@ -40,8 +42,13 @@ export default function MonthlySummaryTotals({
 
       <View style={styles.summaryItem}>
         <View style={[styles.iconCircle, styles.investmentIcon]}>
-          <Ionicons name="trending-up" size={20} color={colors.investment} />
+          <Ionicons
+            name="business-outline"
+            size={18}
+            color={colors.investment}
+          />
         </View>
+
         <Text style={styles.summaryValue}>
           {formatCurrency(totalInvestment)}
         </Text>

@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View } from "react-native";
-
 import { colors } from "../../constants/theme";
 
 export default function AnalyticsHeader() {

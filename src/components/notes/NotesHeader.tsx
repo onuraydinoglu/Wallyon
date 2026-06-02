@@ -11,6 +11,7 @@ export default function NotesHeader({ onAddPress }: NotesHeaderProps) {
     <View style={styles.header}>
       <View style={styles.headerTextWrapper}>
         <Text style={styles.pageTitle}>Yapılacaklar</Text>
+
         <Text style={styles.pageDescription}>
           Bugünkü notlarını takip et, planlarını tarihe göre düzenle.
         </Text>

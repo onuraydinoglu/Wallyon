@@ -14,6 +14,27 @@ export default function HomeSummarySection({
   currentMonthExpense,
   currentMonthInvestment,
 }: HomeSummarySectionProps) {
+  const maxSummaryAmount = Math.max(
+    currentMonthIncome,
+    currentMonthExpense,
+    currentMonthInvestment,
+  );
+
+  const getSummaryProgressWidth = (amount: number): `${number}%` => {
+    if (maxSummaryAmount <= 0) {
+      return "5%";
+    }
+
+    if (amount <= 0) {
+      return "5%";
+    }
+
+    const percent = Math.round((amount / maxSummaryAmount) * 100);
+    const safePercent = Math.min(Math.max(percent, 5), 100);
+
+    return `${safePercent}%`;
+  };
+
   return (
     <View style={styles.summaryGrid}>
       <SummaryCard
@@ -21,7 +42,7 @@ export default function HomeSummarySection({
         amount={currentMonthIncome}
         dotColor={colors.income}
         progressColor={colors.income}
-        progressWidth="72%"
+        progressWidth={getSummaryProgressWidth(currentMonthIncome)}
       />
 
       <SummaryCard
@@ -29,7 +50,7 @@ export default function HomeSummarySection({
         amount={currentMonthExpense}
         dotColor={colors.expense}
         progressColor={colors.expense}
-        progressWidth="55%"
+        progressWidth={getSummaryProgressWidth(currentMonthExpense)}
       />
 
       <SummaryCard
@@ -37,7 +58,7 @@ export default function HomeSummarySection({
         amount={currentMonthInvestment}
         dotColor={colors.investment}
         progressColor={colors.investment}
-        progressWidth="68%"
+        progressWidth={getSummaryProgressWidth(currentMonthInvestment)}
       />
     </View>
   );

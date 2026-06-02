@@ -8,7 +8,7 @@ type SummaryCardProps = {
   amount: number;
   dotColor: string;
   progressColor: string;
-  progressWidth?: `${number}%`;
+  progressWidth: `${number}%`;
 };
 
 export default function SummaryCard({
@@ -16,36 +16,19 @@ export default function SummaryCard({
   amount,
   dotColor,
   progressColor,
-  progressWidth = "65%",
+  progressWidth,
 }: SummaryCardProps) {
   return (
     <View style={styles.summaryCard}>
       <View style={styles.summaryTopRow}>
-        <Text
-          style={styles.summaryLabel}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.82}
-        >
+        <Text style={styles.summaryLabel} numberOfLines={1}>
           {title}
         </Text>
 
-        <View
-          style={[
-            styles.summaryDot,
-            {
-              backgroundColor: dotColor,
-            },
-          ]}
-        />
+        <View style={[styles.summaryDot, { backgroundColor: dotColor }]} />
       </View>
 
-      <Text
-        style={styles.summaryAmount}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.72}
-      >
+      <Text style={styles.summaryAmount} numberOfLines={1}>
         {formatCurrency(amount)}
       </Text>
 
@@ -76,12 +59,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.panelBorder,
   },
+
   summaryTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 6,
   },
+
   summaryLabel: {
     flex: 1,
     minWidth: 0,
@@ -89,17 +74,20 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: "700",
   },
+
   summaryDot: {
     width: 9,
     height: 9,
     borderRadius: 999,
   },
+
   summaryAmount: {
     marginTop: 16,
     color: colors.white,
     fontSize: 15,
     fontWeight: "900",
   },
+
   progressTrack: {
     height: 5,
     marginTop: 19,
@@ -107,6 +95,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "rgba(30, 41, 59, 0.9)",
   },
+
   progressFill: {
     height: "100%",
     borderRadius: 999,

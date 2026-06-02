@@ -48,7 +48,8 @@ export default function IncomeFieldsModal({
           <Text style={styles.title}>Gelir Alanları</Text>
 
           <Text style={styles.description}>
-            SelectBox içinde görünecek alanları ekleyebilir veya silebilirsin.
+            SelectBox içinde görünecek gelir alanlarını ekleyebilir veya
+            silebilirsin.
           </Text>
 
           <Text style={styles.label}>Yeni Alan Adı</Text>
@@ -57,13 +58,18 @@ export default function IncomeFieldsModal({
             <AppInput
               value={fieldName}
               onChangeText={setFieldName}
-              placeholder="Örn: Prim, Elektrik, Altın"
+              placeholder="Örn: Prim, Maaş, Ek Gelir"
               style={styles.input}
+              height={42}
+              returnKeyType="done"
+              onSubmitEditing={handleAdd}
             />
 
             <AppButton
               title="Ekle"
               onPress={handleAdd}
+              width={92}
+              height={42}
               style={styles.addButton}
             />
           </View>
@@ -82,7 +88,9 @@ export default function IncomeFieldsModal({
               contentContainerStyle={styles.fieldsListContent}
               renderItem={({ item }) => (
                 <View style={styles.fieldItem}>
-                  <Text style={styles.fieldText}>{item}</Text>
+                  <Text style={styles.fieldText} numberOfLines={1}>
+                    {item}
+                  </Text>
 
                   <AppIconButton
                     icon="trash-outline"
@@ -103,6 +111,8 @@ export default function IncomeFieldsModal({
               title="Kapat"
               onPress={onClose}
               variant="secondary"
+              width={96}
+              height={42}
               style={styles.closeButton}
             />
           </View>
@@ -120,6 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 10,
   },
+
   modalCard: {
     width: "100%",
     maxWidth: 480,
@@ -130,11 +141,13 @@ const styles = StyleSheet.create({
     borderColor: colors.purpleBorder,
     padding: 16,
   },
+
   title: {
     color: colors.white,
     fontSize: 22,
     fontWeight: "900",
   },
+
   description: {
     marginTop: 6,
     color: colors.label,
@@ -142,6 +155,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "600",
   },
+
   label: {
     marginTop: 18,
     marginBottom: 6,
@@ -149,16 +163,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
   },
+
   addRow: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
+
   input: {
     flex: 1,
+    minWidth: 0,
   },
+
   addButton: {
-    width: 88,
+    flexShrink: 0,
   },
+
   sectionTitle: {
     marginTop: 20,
     marginBottom: 10,
@@ -166,13 +186,16 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "900",
   },
+
   fieldsListBox: {
     height: 162,
   },
+
   fieldsListContent: {
     gap: 8,
     paddingBottom: 4,
   },
+
   fieldItem: {
     minHeight: 48,
     borderRadius: 14,
@@ -184,12 +207,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 10,
   },
+
   fieldText: {
+    flex: 1,
+    minWidth: 0,
     color: colors.white,
     fontSize: 14,
     fontWeight: "700",
   },
+
   footer: {
     marginTop: 18,
     paddingTop: 12,
@@ -198,7 +226,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
   },
+
   closeButton: {
-    width: 96,
+    flexShrink: 0,
   },
 });

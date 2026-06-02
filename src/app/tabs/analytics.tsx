@@ -3,6 +3,8 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import AnalyticsHeader from "../../components/analytics/AnalyticsHeader";
 import MonthlySummaryCard from "../../components/analytics/MonthlySummaryCard";
 import MonthlyTransactionDetails from "../../components/analytics/MonthlyTransactionDetails";
 import { colors } from "../../constants/theme";
@@ -86,6 +88,8 @@ export default function AnalyticsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
+        <AnalyticsHeader />
+
         <MonthlySummaryCard
           monthlyData={monthlyData}
           selectedMonthKey={selectedMonthKey}
@@ -103,15 +107,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 20,
+    paddingBottom: 110,
   },
 });

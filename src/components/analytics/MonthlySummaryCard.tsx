@@ -1,5 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useMemo, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
 import { colors } from "../../constants/theme";
 import { MonthlySummary } from "../../utils/analyticsHelpers";
 import { formatCurrency } from "../../utils/formatCurrency";
@@ -10,113 +20,235 @@ type MonthlySummaryCardProps = {
   onSelectMonth: (monthKey: string) => void;
 };
 
+const monthNames = [
+  "Ocak",
+  "Şubat",
+  "Mart",
+  "Nisan",
+  "Mayıs",
+  "Haziran",
+  "Temmuz",
+  "Ağustos",
+  "Eylül",
+  "Ekim",
+  "Kasım",
+  "Aralık",
+];
+
+function getMonthNumber(monthLabel: string) {
+  const monthName = monthLabel.split(" ")[0];
+  const monthIndex = monthNames.findIndex((item) => item === monthName);
+
+  return monthIndex === -1 ? 0 : monthIndex + 1;
+}
+
+function getYear(monthLabel: string) {
+  const parts = monthLabel.split(" ");
+  const year = Number(parts[1]);
+
+  return Number.isNaN(year) ? new Date().getFullYear() : year;
+}
+
 export default function MonthlySummaryCard({
   monthlyData,
   selectedMonthKey,
   onSelectMonth,
 }: MonthlySummaryCardProps) {
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+  const selectedMonthData =
+    monthlyData.find((item) => item.monthKey === selectedMonthKey) || null;
+
+  const years = useMemo(() => {
+    const uniqueYears = Array.from(
+      new Set(monthlyData.map((item) => getYear(item.monthLabel))),
+    );
+
+    return uniqueYears.sort((a, b) => b - a);
+  }, [monthlyData]);
+
+  const [selectedFilterYear, setSelectedFilterYear] = useState<number | null>(
+    years[0] || null,
+  );
+
+  const activeFilterYear =
+    selectedFilterYear ||
+    getYear(selectedMonthData?.monthLabel || "") ||
+    years[0];
+
+  const filteredMonths = useMemo(() => {
+    return monthlyData
+      .filter((item) => getYear(item.monthLabel) === activeFilterYear)
+      .sort(
+        (a, b) => getMonthNumber(b.monthLabel) - getMonthNumber(a.monthLabel),
+      );
+  }, [monthlyData, activeFilterYear]);
+
+  const handleOpenFilter = () => {
+    if (selectedMonthData) {
+      setSelectedFilterYear(getYear(selectedMonthData.monthLabel));
+    } else if (years.length > 0) {
+      setSelectedFilterYear(years[0]);
+    }
+
+    setIsFilterVisible(true);
+  };
+
+  const handleSelectMonth = (monthKey: string) => {
+    onSelectMonth(monthKey);
+    setIsFilterVisible(false);
+  };
+
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.titleIcon}>
-          <Ionicons
-            name="calendar-outline"
-            size={20}
-            color={colors.purpleLight}
+    <>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderLeft}>
+            <Text style={styles.cardLabel}>Aylık Özet</Text>
+
+            <Text style={styles.cardTitle}>
+              {selectedMonthData
+                ? selectedMonthData.monthLabel
+                : "Ay seçilmedi"}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.filterButton}
+            onPress={handleOpenFilter}
+            disabled={monthlyData.length === 0}
+          >
+            <Ionicons
+              name="options-outline"
+              size={18}
+              color={colors.purpleLight}
+            />
+
+            <Text style={styles.filterButtonText}>Filtrele</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.transactionBadgeRow}>
+          <View style={styles.transactionBadge}>
+            <Ionicons
+              name="receipt-outline"
+              size={15}
+              color={colors.purpleLight}
+            />
+
+            <Text style={styles.transactionBadgeText}>
+              {selectedMonthData ? selectedMonthData.transactionCount : 0} işlem
+            </Text>
+          </View>
+
+          <View style={styles.transactionBadge}>
+            <Ionicons
+              name="calendar-outline"
+              size={15}
+              color={colors.purpleLight}
+            />
+
+            <Text style={styles.transactionBadgeText}>
+              {monthlyData.length} aylık veri
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: selectedMonthData ? "65%" : "0%",
+              },
+            ]}
           />
         </View>
 
-        <View style={styles.headerTextArea}>
-          <Text style={styles.title}>Aylık Özet</Text>
+        <View style={styles.divider} />
 
-          <Text style={styles.description}>
-            Bir aya tıklayarak o aya ait tüm işlemleri görebilirsin.
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <View style={[styles.iconCircle, styles.incomeIcon]}>
+              <Ionicons
+                name="trending-up-outline"
+                size={24}
+                color={colors.income}
+              />
+            </View>
+
+            <Text style={styles.summaryValue}>
+              {formatCurrency(selectedMonthData?.totalIncome || 0)}
+            </Text>
+
+            <Text style={styles.summaryLabel}>Gelir</Text>
+          </View>
+
+          <View style={styles.summaryDivider} />
+
+          <View style={styles.summaryItem}>
+            <View style={[styles.iconCircle, styles.expenseIcon]}>
+              <Ionicons
+                name="trending-down-outline"
+                size={24}
+                color={colors.expense}
+              />
+            </View>
+
+            <Text style={styles.summaryValue}>
+              {formatCurrency(selectedMonthData?.totalExpense || 0)}
+            </Text>
+
+            <Text style={styles.summaryLabel}>Gider</Text>
+          </View>
+
+          <View style={styles.summaryDivider} />
+
+          <View style={styles.summaryItem}>
+            <View style={[styles.iconCircle, styles.investmentIcon]}>
+              <Ionicons name="business" size={24} color={colors.investment} />
+            </View>
+
+            <Text style={styles.summaryValue}>
+              {formatCurrency(selectedMonthData?.totalInvestment || 0)}
+            </Text>
+
+            <Text style={styles.summaryLabel}>Yatırım</Text>
+          </View>
+        </View>
+
+        <View style={styles.balanceBox}>
+          <View>
+            <Text style={styles.balanceLabel}>Kalan Para</Text>
+
+            <Text style={styles.balanceDescription}>
+              Seçili aya göre hesaplandı
+            </Text>
+          </View>
+
+          <Text
+            style={[
+              styles.balanceValue,
+              {
+                color:
+                  (selectedMonthData?.balance || 0) >= 0
+                    ? colors.purpleLight
+                    : colors.expense,
+              },
+            ]}
+          >
+            {formatCurrency(selectedMonthData?.balance || 0)}
           </Text>
         </View>
-      </View>
-
-      <View style={styles.monthList}>
-        {monthlyData.map((item) => {
-          const isSelected = selectedMonthKey === item.monthKey;
-          const balanceColor =
-            item.balance >= 0 ? colors.purpleLight : colors.expense;
-
-          return (
-            <TouchableOpacity
-              key={item.monthKey}
-              activeOpacity={0.85}
-              style={[styles.monthRow, isSelected && styles.selectedMonthRow]}
-              onPress={() => onSelectMonth(item.monthKey)}
-            >
-              <View
-                style={[
-                  styles.monthIconBox,
-                  isSelected && styles.selectedMonthIconBox,
-                ]}
-              >
-                <Ionicons
-                  name={isSelected ? "calendar" : "calendar-outline"}
-                  size={20}
-                  color={isSelected ? colors.white : colors.purpleLight}
-                />
-              </View>
-
-              <View style={styles.monthInfo}>
-                <Text style={styles.monthName}>{item.monthLabel}</Text>
-
-                <View style={styles.monthMetaRow}>
-                  <Text style={styles.monthCount}>
-                    {item.transactionCount} işlem
-                  </Text>
-
-                  <View style={styles.dot} />
-
-                  <Text style={styles.monthSubText}>
-                    Gelir / Gider / Yatırım
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.monthRight}>
-                <Text style={[styles.monthBalance, { color: balanceColor }]}>
-                  {formatCurrency(item.balance)}
-                </Text>
-
-                <View
-                  style={[
-                    styles.statusBadge,
-                    isSelected && styles.selectedStatusBadge,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statusBadgeText,
-                      isSelected && styles.selectedStatusBadgeText,
-                    ]}
-                  >
-                    {isSelected ? "Seçili" : "Detay"}
-                  </Text>
-
-                  <Ionicons
-                    name={isSelected ? "checkmark" : "chevron-forward"}
-                    size={13}
-                    color={isSelected ? colors.white : colors.purpleLight}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
 
         {monthlyData.length === 0 && (
           <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons
-                name="bar-chart-outline"
-                size={26}
-                color={colors.purpleLight}
-              />
-            </View>
+            <Ionicons
+              name="document-text-outline"
+              size={28}
+              color={colors.purpleLight}
+            />
 
             <Text style={styles.emptyStateTitle}>İşlem bulunamadı</Text>
 
@@ -126,205 +258,431 @@ export default function MonthlySummaryCard({
           </View>
         )}
       </View>
-    </View>
+
+      <Modal
+        visible={isFilterVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsFilterVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsFilterVisible(false)}
+        >
+          <Pressable style={styles.filterModal}>
+            <View style={styles.modalHandle} />
+
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Ay ve Yıl Seç</Text>
+
+                <Text style={styles.modalDescription}>
+                  Görmek istediğin aylık özeti filtrele.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.closeButton}
+                onPress={() => setIsFilterVisible(false)}
+              >
+                <Ionicons name="close-outline" size={22} color={colors.white} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.filterSectionTitle}>Yıl</Text>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.yearList}
+            >
+              {years.map((year) => {
+                const isSelected = activeFilterYear === year;
+
+                return (
+                  <TouchableOpacity
+                    key={year}
+                    activeOpacity={0.85}
+                    style={[
+                      styles.yearChip,
+                      isSelected && styles.selectedYearChip,
+                    ]}
+                    onPress={() => setSelectedFilterYear(year)}
+                  >
+                    <Text
+                      style={[
+                        styles.yearChipText,
+                        isSelected && styles.selectedYearChipText,
+                      ]}
+                    >
+                      {year}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            <Text style={styles.filterSectionTitle}>Ay</Text>
+
+            <ScrollView
+              style={styles.monthScrollArea}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
+            >
+              <View style={styles.monthGrid}>
+                {filteredMonths.map((item) => {
+                  const isSelected = selectedMonthKey === item.monthKey;
+
+                  return (
+                    <TouchableOpacity
+                      key={item.monthKey}
+                      activeOpacity={0.85}
+                      style={[
+                        styles.monthOption,
+                        isSelected && styles.selectedMonthOption,
+                      ]}
+                      onPress={() => handleSelectMonth(item.monthKey)}
+                    >
+                      <View>
+                        <Text
+                          style={[
+                            styles.monthOptionTitle,
+                            isSelected && styles.selectedMonthOptionTitle,
+                          ]}
+                        >
+                          {item.monthLabel}
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.monthOptionText,
+                            isSelected && styles.selectedMonthOptionText,
+                          ]}
+                        >
+                          {item.transactionCount} işlem
+                        </Text>
+                      </View>
+
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color={colors.white}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    marginTop: 22,
+    padding: 18,
     borderRadius: 30,
     backgroundColor: colors.panel,
-    padding: 20,
     borderWidth: 1,
     borderColor: colors.panelBorder,
   },
-
-  header: {
+  cardHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 12,
-    marginBottom: 18,
+    justifyContent: "space-between",
+    gap: 14,
   },
-
-  titleIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.purpleSoft,
-    borderWidth: 1,
-    borderColor: colors.purpleBorder,
-  },
-
-  headerTextArea: {
+  cardHeaderLeft: {
     flex: 1,
   },
-
-  title: {
+  cardLabel: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  cardTitle: {
+    marginTop: 8,
     color: colors.white,
-    fontSize: 27,
+    fontSize: 26,
     fontWeight: "900",
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
   },
-
-  description: {
-    marginTop: 7,
-    color: colors.label,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: "700",
-  },
-
-  monthList: {
-    marginTop: 2,
-    gap: 10,
-  },
-
-  monthRow: {
-    minHeight: 82,
-    borderRadius: 24,
-    backgroundColor: "rgba(15, 23, 42, 0.52)",
+  filterButton: {
+    minHeight: 42,
+    paddingHorizontal: 13,
+    borderRadius: 16,
+    backgroundColor: colors.purpleSoft,
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.08)",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderColor: colors.purpleBorder,
     flexDirection: "row",
     alignItems: "center",
+    gap: 6,
   },
-
-  selectedMonthRow: {
-    backgroundColor: colors.purpleSoft,
-    borderColor: colors.purpleBorder,
+  filterButtonText: {
+    color: colors.purpleLight,
+    fontSize: 12,
+    fontWeight: "900",
   },
-
-  monthIconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
+  transactionBadgeRow: {
+    marginTop: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  transactionBadge: {
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    borderRadius: 999,
     backgroundColor: "rgba(139, 92, 246, 0.1)",
     borderWidth: 1,
     borderColor: "rgba(139, 92, 246, 0.18)",
-    marginRight: 12,
-  },
-
-  selectedMonthIconBox: {
-    backgroundColor: colors.purple,
-    borderColor: colors.purple,
-  },
-
-  monthInfo: {
-    flex: 1,
-    minWidth: 0,
-    paddingRight: 10,
-  },
-
-  monthName: {
-    color: colors.white,
-    fontSize: 17,
-    fontWeight: "900",
-  },
-
-  monthMetaRow: {
-    marginTop: 7,
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "wrap",
-    gap: 7,
+    gap: 6,
   },
-
-  monthCount: {
-    color: colors.label,
-    fontSize: 12,
-    fontWeight: "800",
-  },
-
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "rgba(148, 163, 184, 0.55)",
-  },
-
-  monthSubText: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
-  monthRight: {
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-
-  monthBalance: {
-    fontSize: 17,
-    fontWeight: "900",
-  },
-
-  statusBadge: {
-    marginTop: 8,
-    minHeight: 28,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: "rgba(139, 92, 246, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(139, 92, 246, 0.16)",
-  },
-
-  selectedStatusBadge: {
-    backgroundColor: colors.purple,
-    borderColor: colors.purple,
-  },
-
-  statusBadgeText: {
+  transactionBadgeText: {
     color: colors.purpleLight,
     fontSize: 11,
     fontWeight: "900",
   },
-
-  selectedStatusBadgeText: {
-    color: colors.white,
+  progressBar: {
+    marginTop: 24,
+    height: 11,
+    borderRadius: 999,
+    backgroundColor: colors.background,
+    overflow: "hidden",
   },
-
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: colors.purple,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.panelBorder,
+    marginTop: 24,
+    marginBottom: 22,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  iconCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  incomeIcon: {
+    backgroundColor: colors.incomeSoft,
+    borderColor: colors.incomeBorder,
+  },
+  expenseIcon: {
+    backgroundColor: colors.expenseSoft,
+    borderColor: colors.expenseBorder,
+  },
+  investmentIcon: {
+    backgroundColor: colors.investmentSoft,
+    borderColor: colors.investmentBorder,
+  },
+  summaryValue: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  summaryLabel: {
+    marginTop: 5,
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  summaryDivider: {
+    width: 1,
+    height: 56,
+    backgroundColor: colors.panelBorder,
+  },
+  balanceBox: {
+    marginTop: 22,
+    padding: 15,
+    borderRadius: 22,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  balanceLabel: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  balanceDescription: {
+    marginTop: 4,
+    color: colors.label,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  balanceValue: {
+    fontSize: 18,
+    fontWeight: "900",
+  },
   emptyState: {
-    minHeight: 150,
+    minHeight: 120,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 18,
-    paddingVertical: 22,
+    paddingVertical: 20,
   },
-
-  emptyIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.purpleSoft,
-    borderWidth: 1,
-    borderColor: colors.purpleBorder,
-    marginBottom: 12,
-  },
-
   emptyStateTitle: {
+    marginTop: 10,
     color: colors.white,
     fontSize: 15,
     fontWeight: "900",
     textAlign: "center",
   },
-
   emptyStateText: {
-    marginTop: 8,
+    marginTop: 7,
     color: colors.muted,
     fontSize: 13,
     fontWeight: "600",
     textAlign: "center",
     lineHeight: 19,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.62)",
+    justifyContent: "flex-end",
+  },
+  filterModal: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 28,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+  },
+  modalHandle: {
+    alignSelf: "center",
+    width: 44,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: colors.panelBorder,
+    marginBottom: 18,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 14,
+  },
+  modalTitle: {
+    color: colors.white,
+    fontSize: 24,
+    fontWeight: "900",
+    letterSpacing: -0.4,
+  },
+  modalDescription: {
+    marginTop: 6,
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  closeButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterSectionTitle: {
+    marginTop: 22,
+    marginBottom: 10,
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  yearList: {
+    gap: 10,
+  },
+  yearChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: 999,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+  },
+  selectedYearChip: {
+    backgroundColor: colors.purple,
+    borderColor: colors.purple,
+  },
+  yearChipText: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  selectedYearChipText: {
+    color: colors.white,
+  },
+  monthScrollArea: {
+    maxHeight: 432,
+  },
+  monthGrid: {
+    gap: 10,
+    paddingBottom: 4,
+  },
+  monthOption: {
+    minHeight: 62,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 20,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  selectedMonthOption: {
+    backgroundColor: colors.purple,
+    borderColor: colors.purple,
+  },
+  monthOptionTitle: {
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  selectedMonthOptionTitle: {
+    color: colors.white,
+  },
+  monthOptionText: {
+    marginTop: 4,
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  selectedMonthOptionText: {
+    color: colors.white,
   },
 });

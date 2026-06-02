@@ -49,7 +49,7 @@ export default function HomeHeader({
         </Text>
 
         <Text style={styles.welcomeText} numberOfLines={1} ellipsizeMode="tail">
-          {name ? `, ${name}` : ""}
+          {name ? `${name}` : ""}
         </Text>
       </View>
 

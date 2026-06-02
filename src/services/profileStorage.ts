@@ -17,5 +17,6 @@ export const deleteProfileStorage = async () => {
   await AsyncStorage.multiRemove([
     STORAGE_KEYS.userName,
     STORAGE_KEYS.transactions,
+    STORAGE_KEYS.notes,
   ]);
 };

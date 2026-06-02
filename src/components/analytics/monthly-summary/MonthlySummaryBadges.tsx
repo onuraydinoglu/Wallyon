@@ -11,7 +11,6 @@ type MonthlySummaryBadgesProps = {
 
 export default function MonthlySummaryBadges({
   selectedTransactionCount,
-  totalMonthCount,
 }: MonthlySummaryBadgesProps) {
   return (
     <View style={styles.transactionBadgeRow}>
@@ -19,17 +18,6 @@ export default function MonthlySummaryBadges({
         <Ionicons name="receipt-outline" size={14} color={colors.purpleLight} />
         <Text style={styles.transactionBadgeText}>
           {selectedTransactionCount} işlem
-        </Text>
-      </View>
-
-      <View style={styles.transactionBadge}>
-        <Ionicons
-          name="calendar-outline"
-          size={14}
-          color={colors.purpleLight}
-        />
-        <Text style={styles.transactionBadgeText}>
-          {totalMonthCount} aylık veri
         </Text>
       </View>
     </View>

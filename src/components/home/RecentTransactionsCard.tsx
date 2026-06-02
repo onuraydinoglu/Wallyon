@@ -1,9 +1,13 @@
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../constants/theme";
 import { Transaction } from "../../types/transaction";
+import Pagination from "../ui/Pagination";
 import EmptyCard from "./EmptyCard";
 import TransactionItem from "./TransactionItem";
+
+const RECENT_TRANSACTIONS_PAGE_SIZE = 5;
 
 type RecentTransactionsCardProps = {
   todayText: string;
@@ -18,12 +22,37 @@ export default function RecentTransactionsCard({
   onEdit,
   onDelete,
 }: RecentTransactionsCardProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
   const isEmpty = transactions.length === 0;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(transactions.length / RECENT_TRANSACTIONS_PAGE_SIZE),
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [transactions.length]);
+
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * RECENT_TRANSACTIONS_PAGE_SIZE;
+    const endIndex = startIndex + RECENT_TRANSACTIONS_PAGE_SIZE;
+
+    return transactions.slice(startIndex, endIndex);
+  }, [transactions, currentPage]);
 
   return (
     <View style={styles.transactionsCard}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Son İşlemler</Text>
+
         <Text style={styles.todayText}>{todayText}</Text>
       </View>
 
@@ -34,14 +63,23 @@ export default function RecentTransactionsCard({
           description="Gelir, gider veya yatırım eklediğinde son işlemlerin burada listelenir."
         />
       ) : (
-        transactions.map((item) => (
-          <TransactionItem
-            key={item.id}
-            transaction={item}
-            onEdit={onEdit}
-            onDelete={onDelete}
+        <>
+          {paginatedTransactions.map((item) => (
+            <TransactionItem
+              key={item.id}
+              transaction={item}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+
+          <Pagination
+            currentPage={currentPage}
+            totalItems={transactions.length}
+            pageSize={RECENT_TRANSACTIONS_PAGE_SIZE}
+            onPageChange={setCurrentPage}
           />
-        ))
+        </>
       )}
     </View>
   );

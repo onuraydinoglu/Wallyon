@@ -1,28 +1,59 @@
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+
 import { colors } from "../../constants/theme";
 import { MonthlySummary } from "../../utils/analyticsHelpers";
 import { formatCurrency } from "../../utils/formatCurrency";
 import TransactionItem from "../home/TransactionItem";
+import Pagination from "../ui/Pagination";
 
 type MonthlyTransactionDetailsProps = {
   selectedMonthData: MonthlySummary | null;
 };
 
+const MONTHLY_DETAILS_PAGE_SIZE = 5;
+
 export default function MonthlyTransactionDetails({
   selectedMonthData,
 }: MonthlyTransactionDetailsProps) {
-  if (!selectedMonthData) return null;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const transactions = selectedMonthData?.transactions || [];
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(transactions.length / MONTHLY_DETAILS_PAGE_SIZE),
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonthData?.monthKey]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * MONTHLY_DETAILS_PAGE_SIZE;
+    const endIndex = startIndex + MONTHLY_DETAILS_PAGE_SIZE;
+
+    return transactions.slice(startIndex, endIndex);
+  }, [transactions, currentPage]);
+
+  if (!selectedMonthData) {
+    return null;
+  }
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>{selectedMonthData.monthLabel}</Text>
+        <Text style={styles.title}>{selectedMonthData.monthLabel}</Text>
 
-          <Text style={styles.description}>
-            Bu ay yapılan işlemler son işlemler görünümünde listelenir.
-          </Text>
-        </View>
+        <Text style={styles.description}>
+          Bu ay yapılan işlemler son işlemler görünümünde listelenir.
+        </Text>
       </View>
 
       <View style={styles.summaryGrid}>
@@ -37,11 +68,7 @@ export default function MonthlyTransactionDetails({
         >
           <Text style={styles.summaryLabel}>Gelir</Text>
 
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={[styles.summaryValue, { color: colors.income }]}
-          >
+          <Text style={[styles.summaryValue, { color: colors.income }]}>
             + {formatCurrency(selectedMonthData.totalIncome)}
           </Text>
         </View>
@@ -57,11 +84,7 @@ export default function MonthlyTransactionDetails({
         >
           <Text style={styles.summaryLabel}>Gider</Text>
 
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={[styles.summaryValue, { color: colors.expense }]}
-          >
+          <Text style={[styles.summaryValue, { color: colors.expense }]}>
             - {formatCurrency(selectedMonthData.totalExpense)}
           </Text>
         </View>
@@ -77,42 +100,42 @@ export default function MonthlyTransactionDetails({
         >
           <Text style={styles.summaryLabel}>Yatırım</Text>
 
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={[styles.summaryValue, { color: colors.investment }]}
-          >
+          <Text style={[styles.summaryValue, { color: colors.investment }]}>
             - {formatCurrency(selectedMonthData.totalInvestment)}
           </Text>
         </View>
+      </View>
 
-        <View
+      <View
+        style={[
+          styles.balanceBox,
+          {
+            backgroundColor:
+              selectedMonthData.balance >= 0
+                ? colors.purpleSoft
+                : colors.expenseSoft,
+            borderColor:
+              selectedMonthData.balance >= 0
+                ? colors.purpleBorder
+                : colors.expenseBorder,
+          },
+        ]}
+      >
+        <Text style={styles.balanceLabel}>Kalan</Text>
+
+        <Text
           style={[
-            styles.summaryBox,
+            styles.balanceValue,
             {
-              backgroundColor: colors.purpleSoft,
-              borderColor: colors.purpleBorder,
+              color:
+                selectedMonthData.balance >= 0
+                  ? colors.purpleLight
+                  : colors.expense,
             },
           ]}
         >
-          <Text style={styles.summaryLabel}>Kalan</Text>
-
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={[
-              styles.summaryValue,
-              {
-                color:
-                  selectedMonthData.balance >= 0
-                    ? colors.purpleLight
-                    : colors.expense,
-              },
-            ]}
-          >
-            {formatCurrency(selectedMonthData.balance)}
-          </Text>
-        </View>
+          {formatCurrency(selectedMonthData.balance)}
+        </Text>
       </View>
 
       <View style={styles.transactionsHeader}>
@@ -124,24 +147,32 @@ export default function MonthlyTransactionDetails({
       </View>
 
       <View style={styles.transactionsList}>
-        {selectedMonthData.transactions.map((transaction) => (
+        {paginatedTransactions.map((transaction) => (
           <TransactionItem
             key={transaction.id}
             transaction={transaction}
-            showActions={false}
+            onEdit={() => {}}
+            onDelete={() => {}}
           />
         ))}
+
+        {transactions.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>İşlem bulunamadı</Text>
+
+            <Text style={styles.emptyStateText}>
+              Bu ay için kayıtlı işlem bulunmuyor.
+            </Text>
+          </View>
+        )}
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={transactions.length}
+          pageSize={MONTHLY_DETAILS_PAGE_SIZE}
+          onPageChange={setCurrentPage}
+        />
       </View>
-
-      {selectedMonthData.transactions.length === 0 && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateTitle}>İşlem bulunamadı</Text>
-
-          <Text style={styles.emptyStateText}>
-            Bu ay için kayıtlı işlem bulunmuyor.
-          </Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -199,6 +230,30 @@ const styles = StyleSheet.create({
   summaryValue: {
     marginTop: 8,
     fontSize: 14,
+    fontWeight: "900",
+  },
+
+  balanceBox: {
+    marginTop: 12,
+    minHeight: 58,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+
+  balanceLabel: {
+    color: colors.label,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  balanceValue: {
+    fontSize: 16,
     fontWeight: "900",
   },
 

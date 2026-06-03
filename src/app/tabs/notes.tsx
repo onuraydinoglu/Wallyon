@@ -7,6 +7,7 @@ import NoteDateGroup from "../../components/notes/NoteDateGroup";
 import NoteEmptyState from "../../components/notes/NoteEmptyState";
 import NoteProgressCard from "../../components/notes/NoteProgressCard";
 import NotesHeader from "../../components/notes/NotesHeader";
+import AppIconButton from "../../components/ui/AppIconButton";
 import { colors } from "../../constants/theme";
 import { getStoredNotes, saveStoredNotes } from "../../services/noteStorage";
 import { Note } from "../../types/note";
@@ -41,7 +42,7 @@ export default function NotesScreen() {
     const today = getTodayKey();
 
     return notes
-      .filter((note) => note.date <= today)
+      .filter((note) => note.date === today)
       .sort((a, b) => Number(a.isCompleted) - Number(b.isCompleted));
   }, [notes]);
 
@@ -111,69 +112,82 @@ export default function NotesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
-      >
-        <NotesHeader onAddPress={() => router.push("/add-note")} />
+      <View style={styles.screen}>
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <NotesHeader onArchivePress={() => router.push("/archive-notes")} />
 
-        <NoteProgressCard
-          todayCount={todayNotes.length}
-          futureCount={futureNotes.length}
-          completedTodayCount={completedTodayCount}
-          progressPercent={progressPercent}
+          <NoteProgressCard
+            todayCount={todayNotes.length}
+            futureCount={futureNotes.length}
+            completedTodayCount={completedTodayCount}
+            progressPercent={progressPercent}
+          />
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Günün Notları</Text>
+              <Text style={styles.sectionCount}>{todayNotes.length}</Text>
+            </View>
+
+            {todayNotes.length > 0 ? (
+              todayNotes.map((note) => (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  type="today"
+                  onToggle={toggleNote}
+                  onDelete={deleteNote}
+                />
+              ))
+            ) : (
+              <NoteEmptyState
+                title="Bugün için not yok"
+                description="Yeni bir yapılacak ekleyerek günü planlamaya başlayabilirsin."
+              />
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Planlanan Notlar</Text>
+              <Text style={styles.sectionCount}>{futureNotes.length}</Text>
+            </View>
+
+            {futureNoteGroups.length > 0 ? (
+              futureNoteGroups.map((group) => (
+                <NoteDateGroup
+                  key={group.date}
+                  group={group}
+                  isExpanded={!!expandedGroups[group.date]}
+                  onToggleGroup={toggleFutureGroup}
+                  onToggleNote={toggleNote}
+                  onDeleteNote={deleteNote}
+                />
+              ))
+            ) : (
+              <NoteEmptyState
+                title="Planlanmış not yok"
+                description="İleri tarihli bir iş eklediğinde tarihine göre burada görünecek."
+              />
+            )}
+          </View>
+        </ScrollView>
+
+        <AppIconButton
+          icon="create-outline"
+          onPress={() => router.push("/add-note")}
+          size={58}
+          iconSize={27}
+          iconColor={colors.purpleLight}
+          backgroundColor={colors.purpleSoft}
+          borderColor={colors.purpleBorder}
+          style={styles.floatingAddButton}
         />
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Günün Notları</Text>
-            <Text style={styles.sectionCount}>{todayNotes.length}</Text>
-          </View>
-
-          {todayNotes.length > 0 ? (
-            todayNotes.map((note) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                type="today"
-                onToggle={toggleNote}
-                onDelete={deleteNote}
-              />
-            ))
-          ) : (
-            <NoteEmptyState
-              title="Bugün için not yok"
-              description="Yeni bir yapılacak ekleyerek günü planlamaya başlayabilirsin."
-            />
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Planlanan Notlar</Text>
-            <Text style={styles.sectionCount}>{futureNotes.length}</Text>
-          </View>
-
-          {futureNoteGroups.length > 0 ? (
-            futureNoteGroups.map((group) => (
-              <NoteDateGroup
-                key={group.date}
-                group={group}
-                isExpanded={!!expandedGroups[group.date]}
-                onToggleGroup={toggleFutureGroup}
-                onToggleNote={toggleNote}
-                onDeleteNote={deleteNote}
-              />
-            ))
-          ) : (
-            <NoteEmptyState
-              title="Planlanmış not yok"
-              description="İleri tarihli bir iş eklediğinde tarihine göre burada görünecek."
-            />
-          )}
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -182,6 +196,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  screen: {
+    flex: 1,
+    position: "relative",
   },
   container: {
     flex: 1,
@@ -217,5 +235,16 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
     fontSize: 12,
     fontWeight: "900",
+  },
+  floatingAddButton: {
+    position: "absolute",
+    right: 22,
+    bottom: 24,
+    borderRadius: 22,
+    shadowColor: colors.purple,
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
 });

@@ -3,10 +3,10 @@ import { colors } from "../../constants/theme";
 import AppIconButton from "../ui/AppIconButton";
 
 type NotesHeaderProps = {
-  onAddPress: () => void;
+  onArchivePress: () => void;
 };
 
-export default function NotesHeader({ onAddPress }: NotesHeaderProps) {
+export default function NotesHeader({ onArchivePress }: NotesHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.headerTextWrapper}>
@@ -18,14 +18,14 @@ export default function NotesHeader({ onAddPress }: NotesHeaderProps) {
       </View>
 
       <AppIconButton
-        icon="create-outline"
-        onPress={onAddPress}
-        size={50}
-        iconSize={25}
-        iconColor={colors.purpleLight}
-        backgroundColor={colors.purpleSoft}
-        borderColor={colors.purpleBorder}
-        style={styles.headerAddButton}
+        icon="archive-outline"
+        onPress={onArchivePress}
+        size={48}
+        iconSize={23}
+        iconColor={colors.mutedLight}
+        backgroundColor={colors.panel}
+        borderColor={colors.panelBorder}
+        style={styles.headerArchiveButton}
       />
     </View>
   );
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   header: {
     marginTop: 12,
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
   },
   headerTextWrapper: {
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     fontWeight: "600",
   },
-  headerAddButton: {
-    borderRadius: 14,
+  headerArchiveButton: {
+    borderRadius: 18,
   },
 });

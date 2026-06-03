@@ -50,7 +50,7 @@ export default function HomeActionSection({
         icon="create-outline"
         color={colors.purpleLight}
         iconBackgroundColor={colors.purpleSoft}
-        borderColor={colors.panelBorder}
+        borderColor={colors.purpleBorder}
         onPress={onAddNote}
       />
     </View>

@@ -73,30 +73,21 @@ export default function AddNoteScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <AppIconButton
-              icon="chevron-back"
-              onPress={() => router.back()}
-              size={46}
-              iconSize={23}
-              iconColor={colors.white}
-              backgroundColor={colors.panel}
-              borderColor={colors.panelBorder}
-              style={styles.backButton}
-            />
+            <View style={styles.headerTop}>
+              <AppIconButton
+                icon="chevron-back"
+                onPress={() => router.back()}
+                size={43}
+                iconSize={21}
+                iconColor={colors.white}
+                backgroundColor={colors.panel}
+                borderColor={colors.panelBorder}
+                style={styles.backButton}
+              />
 
-            <AppIconButton
-              icon="create-outline"
-              onPress={() => {}}
-              size={46}
-              iconSize={23}
-              iconColor={colors.purple}
-              backgroundColor={colors.purpleSoft}
-              borderColor={colors.purpleBorder}
-            />
-          </View>
+              <Text style={styles.title}>Yeni Not</Text>
+            </View>
 
-          <View style={styles.hero}>
-            <Text style={styles.title}>Yeni Not</Text>
             <Text style={styles.description}>
               Bugün veya ileri tarih için yapılacak not oluştur.
             </Text>
@@ -221,9 +212,12 @@ const styles = StyleSheet.create({
 
   header: {
     marginTop: 12,
+  },
+
+  headerTop: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 14,
   },
 
   backButton: {
@@ -234,22 +228,18 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
-  hero: {
-    marginTop: 28,
-  },
-
   title: {
     color: colors.white,
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: "900",
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
 
   description: {
-    marginTop: 8,
+    marginTop: 12,
     color: colors.muted,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 12,
+    lineHeight: 18,
     fontWeight: "600",
   },
 
@@ -312,62 +302,62 @@ const styles = StyleSheet.create({
   },
 
   inputGroup: {
-    marginBottom: 18,
+    marginBottom: 14,
   },
 
   label: {
-    marginBottom: 8,
+    marginBottom: 7,
     color: colors.white,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "900",
   },
 
   inputBox: {
-    height: 88,
-    borderRadius: 28,
+    height: 58,
+    borderRadius: 20,
     backgroundColor: colors.panel,
     borderWidth: 1,
     borderColor: colors.panelBorder,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 18,
   },
 
   inputIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
 
   textInput: {
     flex: 1,
     height: "100%",
     color: colors.white,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "800",
     paddingVertical: 0,
   },
 
   descriptionBox: {
-    minHeight: 200,
-    borderRadius: 28,
+    minHeight: 150,
+    borderRadius: 22,
     backgroundColor: colors.panel,
     borderWidth: 1,
     borderColor: colors.panelBorder,
     flexDirection: "row",
     alignItems: "flex-start",
-    paddingHorizontal: 24,
-    paddingVertical: 28,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
   },
 
   descriptionIcon: {
-    marginRight: 12,
+    marginRight: 10,
     marginTop: 1,
   },
 
   descriptionInput: {
     flex: 1,
-    minHeight: 135,
+    minHeight: 105,
     color: colors.white,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "800",
     paddingTop: 0,
     paddingBottom: 0,

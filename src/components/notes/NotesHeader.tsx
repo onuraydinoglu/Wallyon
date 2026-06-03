@@ -18,13 +18,13 @@ export default function NotesHeader({ onAddPress }: NotesHeaderProps) {
       </View>
 
       <AppIconButton
-        icon="add"
+        icon="create-outline"
         onPress={onAddPress}
         size={50}
         iconSize={25}
-        iconColor={colors.white}
-        backgroundColor={colors.purple}
-        borderColor={colors.purple}
+        iconColor={colors.purpleLight}
+        backgroundColor={colors.purpleSoft}
+        borderColor={colors.purpleBorder}
         style={styles.headerAddButton}
       />
     </View>
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   header: {
     marginTop: 12,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
   },
   headerTextWrapper: {
@@ -56,11 +56,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   headerAddButton: {
-    borderRadius: 18,
-    shadowColor: colors.purple,
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 7,
+    borderRadius: 14,
   },
 });

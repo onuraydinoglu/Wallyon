@@ -141,8 +141,6 @@ export default function MonthlySummaryCard({
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
-            <Text style={styles.cardLabel}>Aylık Özet</Text>
-
             <Text style={styles.cardTitle}>
               {selectedMonthData
                 ? selectedMonthData.monthLabel
@@ -198,7 +196,7 @@ export default function MonthlySummaryCard({
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <View style={[styles.iconCircle, styles.incomeIcon]}>
-              <Ionicons name="trending-up" size={22} color={colors.income} />
+              <Ionicons name="trending-up" size={18} color={colors.income} />
             </View>
 
             <Text style={styles.summaryValue}>
@@ -212,7 +210,7 @@ export default function MonthlySummaryCard({
 
           <View style={styles.summaryItem}>
             <View style={[styles.iconCircle, styles.expenseIcon]}>
-              <Ionicons name="trending-down" size={22} color={colors.expense} />
+              <Ionicons name="trending-down" size={18} color={colors.expense} />
             </View>
 
             <Text style={styles.summaryValue}>
@@ -228,7 +226,7 @@ export default function MonthlySummaryCard({
             <View style={[styles.iconCircle, styles.investmentIcon]}>
               <Ionicons
                 name="business-outline"
-                size={22}
+                size={18}
                 color={colors.investment}
               />
             </View>
@@ -429,7 +427,6 @@ const styles = StyleSheet.create({
   },
 
   cardTitle: {
-    marginTop: 8,
     color: colors.white,
     fontSize: 26,
     fontWeight: "900",
@@ -437,7 +434,7 @@ const styles = StyleSheet.create({
   },
 
   filterButton: {
-    minHeight: 42,
+    minHeight: 36,
     paddingHorizontal: 13,
     borderRadius: 16,
     backgroundColor: colors.purpleSoft,
@@ -510,13 +507,13 @@ const styles = StyleSheet.create({
   },
 
   iconCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 8,
   },
 
   incomeIcon: {
@@ -536,22 +533,22 @@ const styles = StyleSheet.create({
 
   summaryValue: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "900",
     textAlign: "center",
   },
 
   summaryLabel: {
-    marginTop: 5,
+    marginTop: 3,
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "800",
     textAlign: "center",
   },
 
   summaryDivider: {
     width: 1,
-    height: 56,
+    height: 48,
     backgroundColor: colors.panelBorder,
   },
 

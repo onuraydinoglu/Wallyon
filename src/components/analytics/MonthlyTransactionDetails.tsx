@@ -212,10 +212,10 @@ const styles = StyleSheet.create({
 
   summaryBox: {
     flex: 1,
-    minHeight: 70,
-    borderRadius: 18,
-    paddingHorizontal: 10,
-    paddingVertical: 14,
+    minHeight: 54,
+    borderRadius: 16,
+    paddingHorizontal: 9,
+    paddingVertical: 9,
     borderWidth: 1,
     justifyContent: "center",
     overflow: "hidden",
@@ -223,13 +223,13 @@ const styles = StyleSheet.create({
 
   summaryLabel: {
     color: colors.label,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "800",
   },
 
   summaryValue: {
-    marginTop: 8,
-    fontSize: 14,
+    marginTop: 4,
+    fontSize: 12,
     fontWeight: "900",
   },
 

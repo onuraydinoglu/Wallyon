@@ -5,7 +5,7 @@ export default function AnalyticsHeader() {
   return (
     <View style={styles.header}>
       <View style={styles.headerTextWrapper}>
-        <Text style={styles.pageTitle}>Analiz</Text>
+        <Text style={styles.pageTitle}>Aylık Özet</Text>
 
         <Text style={styles.pageDescription}>
           Gelir, gider ve yatırım hareketlerini aylık olarak incele.

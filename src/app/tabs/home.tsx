@@ -13,15 +13,28 @@ import { colors } from "../../constants/theme";
 import { useHomeModals } from "../../hooks/useHomeModals";
 import { useTransactionFields } from "../../hooks/useTransactionFields";
 import { useTransactions } from "../../hooks/useTransactions";
+import { getStoredNotes } from "../../services/noteStorage";
 import { getStoredUserName } from "../../services/profileStorage";
+import { Note } from "../../types/note";
 import { Transaction } from "../../types/transaction";
 import { formatTodayTR } from "../../utils/transactionDateUtils";
+
+const getTodayKey = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
 export default function HomeScreen() {
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name?: string }>();
 
   const [storedName, setStoredName] = useState("");
+  const [dueNotes, setDueNotes] = useState<Note[]>([]);
 
   const todayText = formatTodayTR();
 
@@ -29,24 +42,38 @@ export default function HomeScreen() {
     useCallback(() => {
       let isActive = true;
 
-      const loadUserName = async () => {
+      const loadHomeData = async () => {
         try {
           if (name && name.trim()) {
             setStoredName(name);
-            return;
+          } else {
+            const savedName = await getStoredUserName();
+
+            if (isActive) {
+              setStoredName(savedName || "");
+            }
           }
 
-          const savedName = await getStoredUserName();
+          const storedNotes = await getStoredNotes();
+          const today = getTodayKey();
+
+          const activeDueNotes = storedNotes
+            .filter((note) => note.date <= today && !note.isCompleted)
+            .sort((a, b) => a.date.localeCompare(b.date));
 
           if (isActive) {
-            setStoredName(savedName || "");
+            setDueNotes(activeDueNotes);
           }
         } catch (error) {
-          console.log("User name could not be loaded on home:", error);
+          console.log("Home data could not be loaded on home:", error);
+
+          if (isActive) {
+            setDueNotes([]);
+          }
         }
       };
 
-      loadUserName();
+      loadHomeData();
 
       return () => {
         isActive = false;
@@ -133,7 +160,11 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        <HomeHeader name={displayName} />
+        <HomeHeader
+          name={displayName}
+          dueNotes={dueNotes}
+          onOpenNotesPress={() => router.push("/tabs/notes")}
+        />
 
         <BalanceCard remainingBalance={remainingBalance} />
 

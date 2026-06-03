@@ -217,6 +217,5 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
     fontSize: 12,
     fontWeight: "900",
-    paddingTop: 5,
   },
 });

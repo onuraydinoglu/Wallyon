@@ -128,7 +128,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
     fontSize: 11,
     fontWeight: "900",
-    paddingTop: 4,
   },
   dateGroupContent: {
     marginTop: 10,
